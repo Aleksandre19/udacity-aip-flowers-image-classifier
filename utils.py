@@ -202,7 +202,7 @@ def download_dataset(url, tar_file, data_path):
     
     # Clean up
     tar_file.unlink()
-    console.print("[green]✓[/green] Dataset downloaded and extracted successfully!")
+    log.info("'[✓]' Dataset downloaded and extracted successfully!")
 
 def start_data_process_questionary():
     return questionary.select(
@@ -221,4 +221,3 @@ def start_data_process_questionary():
             ('selected', 'fg:green'),
         ])
     ).ask()
-

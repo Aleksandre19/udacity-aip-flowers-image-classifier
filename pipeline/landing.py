@@ -67,6 +67,6 @@ class WelcomeMessage:
         """Handle data directory creation if it doesn't exist."""
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
-            log.info(f"Created data directory:'{data_dir}'")
+            log.info(f"'[✓]' Created data directory:'{data_dir}'")
         else:
-            log.info(f"Using existing data directory:'{data_dir}'")
+            log.info(f"'[✓]' Using existing data directory:'{data_dir}'")
