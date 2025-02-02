@@ -12,11 +12,11 @@ def main():
   if not start_training:
     return
   
-  # Set data directory
-  start_training.set_data_directory()
-
-  # Get terminal arguments
+  # Check if we need to get data directory interactively
   args = get_train_terminal_args()
+  if args is None:
+    start_training.set_data_directory()
+    args = get_train_terminal_args()
 
   print(args)
 

@@ -74,6 +74,10 @@ def get_train_terminal_args():
     Define terminal arguments for training a model.
     """
 
+    # Check if we have any arguments before creating parser
+    if len(sys.argv) == 1:
+        return None
+
     parser = CustomArgumentParser(
         description='Train a neural network on a dataset of images',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -164,12 +168,15 @@ class WelcomeMessage:
 
     def set_data_directory(self):
         # Ask for data directory
-        console.print("[info]Please specify the data directory:[/info] [example](e.g., data/flowers)[/example]", end=" ")
-        data_dir = input().strip()
-        
-        # If the user does not provide a data directory, exit
-        if not data_dir:
-            return
+        while True:
+            console.print("[info]Please specify the data directory[/info] [example](e.g., data/flowers)[/example] or type [error]exit[/error] to quit: ", end=" ")
+            data_dir = input().strip().lower()
+
+            if data_dir == 'exit':
+                sys.exit("Exiting...")
+
+            if data_dir:
+                break
             
         # Append data directory to terminal arguments
         sys.argv.append(data_dir)
