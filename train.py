@@ -1,4 +1,5 @@
-from utils import get_train_terminal_args, WelcomeMessage, log
+from utils import get_train_terminal_args, log
+from pipeline.landing import WelcomeMessage
 from rich import console
 
 console = console.Console()
