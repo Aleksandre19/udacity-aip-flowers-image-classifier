@@ -1,10 +1,24 @@
 import argparse
-from rich.console import Console
-from rich.panel import Panel
-from rich.theme import Theme
-from rich.logging import RichHandler
-import sys
 import logging
+import sys
+import tarfile
+import urllib.request
+from pathlib import Path
+
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.panel import Panel
+from rich.progress import (
+    BarColumn,
+    DownloadColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeRemainingColumn,
+    TransferSpeedColumn,
+)
+from rich.theme import Theme
+
 
 def setup_logger():
     """Set up and configure the logger with Rich formatting."""
@@ -141,3 +155,74 @@ def get_train_terminal_args():
                         help='use GPU for training if available')
 
     return parser.parse_args()
+
+
+def download_dataset(url, tar_file, data_path):
+    # Download dataset
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        DownloadColumn(),
+        TransferSpeedColumn(),
+        TimeRemainingColumn(),
+        transient=False
+    ) as progress:
+        # Download with progress tracking
+        download_task = progress.add_task("[yellow]Downloading dataset...", total=None)
+        response = urllib.request.urlopen(url)
+        total_size = int(response.headers.get('content-length', 0))
+        progress.update(download_task, total=total_size)
+        
+        with open(tar_file, 'wb') as f:
+            while True:
+                chunk = response.read(8192)
+                if not chunk:
+                    break
+                f.write(chunk)
+                progress.update(download_task, advance=len(chunk))
+    
+    # Extract with progress tracking in a separate progress bar
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        TransferSpeedColumn(),
+        TimeRemainingColumn(),
+        transient=False
+    ) as progress:
+        extract_task = progress.add_task("[yellow]Extracting dataset...", total=None)
+        with tarfile.open(tar_file, 'r:gz') as tar:
+            members = tar.getmembers()
+            progress.update(extract_task, total=len(members))
+            for member in members:
+                tar.extract(member, path=data_path)
+                progress.advance(extract_task)
+    
+    # Clean up
+    tar_file.unlink()
+    console.print("[green]✓[/green] Dataset downloaded and extracted successfully!")
+
+
+PROVIDE_DATA_RICH_MESSAGE = (
+    "[bold yellow]Dataset Structure Requirements[/bold yellow]\n\n"
+    "Your dataset should be organized as follows:\n"
+    "[blue]data_directory/[/blue]\n"
+    "├── [green]train/[/green]\n"
+    "│   ├── [yellow]1/[/yellow] (category number)\n"
+    "│   │   └── image1.jpg, image2.jpg, ...\n"
+    "│   ├── [yellow]2/[/yellow]\n"
+    "│   └── ...\n"
+    "├── [green]valid/[/green]\n"
+    "│   ├── [yellow]1/[/yellow]\n"
+    "│   └── ...\n"
+    "└── [green]test/[/green]\n"
+    "    ├── [yellow]1/[/yellow]\n"
+    "    └── ...\n\n"
+    "[bold]Important Notes:[/bold]\n"
+    "• Category numbers should match cat_to_name.json located in the root directory\n"
+    "• Each category folder should contain only image files\n"
+    "• Supported format: .jpg\n\n"
+    "[red]Press Enter to exit and organize your dataset...[/red]"
+)
+
