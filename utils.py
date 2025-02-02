@@ -2,6 +2,7 @@ import argparse
 from rich.console import Console
 from rich.panel import Panel
 from rich.theme import Theme
+import sys
 
 # Define color schemes for terminal light and dark themes
 light_theme = Theme({
@@ -38,7 +39,7 @@ class CustomArgumentParser(argparse.ArgumentParser):
     Custom ArgumentParser to override the default error message and format.
     """
     def error(self, message):
-        console.print(f"[error]error: Please specify a data directory![/error]")
+        console.print(f"[error]error: Data directory is required in order to train a model![/error]")
         console.print(f"[example]- Example: python3 train.py data/directory[/example]")
         console.print("------------------------------------------")
         console.print(f"[info]For more information: python3 train.py --info[/info]")
@@ -121,3 +122,54 @@ def get_train_terminal_args():
                         help='use GPU for training if available')
 
     return parser.parse_args()
+
+
+
+class WelcomeMessage:
+    """
+    Display a welcome message before starting the training process 
+    and ask the user if they want to continue.
+    If the user does not want to continue, exit.
+    """
+    def __init__(self):
+        self.display_welcome_message()
+        self.start_training()
+
+    def display_welcome_message(self):
+        console.print(Panel.fit(
+            "[info]Welcome to Flowers Image Classifier Training![/info]\n\n"
+            "You are about to start training a neural network to classify different types of flowers.\n\n"
+            "• [arg]Dataset[/arg]: [desc]Make sure your dataset is properly organized in the data directory[/desc]\n"
+            "• [arg]Model[/arg]: [desc]You can choose from various VGG architectures (vgg11, vgg13, vgg16, vgg19)[/desc]\n"
+            "• [arg]GPU[/arg]: [desc]Training can be accelerated using GPU if available[/desc]\n"
+            "• [arg]Checkpoints[/arg]: [desc]Your trained model will be saved in the checkpoints directory[/desc]\n\n"
+            "[info]Getting Started:[/info]\n"
+            "• Use [example]python train.py --info[/example] to see all available options\n"
+            "• Start training with [example]python train.py data/flowers[/example]",
+            title="Flowers Image Classifier",
+            border_style="title"
+        ))
+
+    def start_training(self):
+        # Ask the user if they want to continue
+        console.print("[info]Start Training? [desc](y/N)[/desc][/info]\n")
+        welcome = input().lower()
+
+        # If the user does not want to continue, exit
+        if welcome != 'y' and welcome != 'yes':
+            sys.exit("Exiting...")
+            return False
+
+        return True
+
+    def set_data_directory(self):
+        # Ask for data directory
+        console.print("[info]Please specify the data directory:[/info] [example](e.g., data/flowers)[/example]", end=" ")
+        data_dir = input().strip()
+        
+        # If the user does not provide a data directory, exit
+        if not data_dir:
+            return
+            
+        # Append data directory to terminal arguments
+        sys.argv.append(data_dir)
