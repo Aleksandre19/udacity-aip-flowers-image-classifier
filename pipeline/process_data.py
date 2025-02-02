@@ -7,7 +7,7 @@ from time import sleep
 from rich.panel import Panel
 from constants import DATASET_URL, PROVIDE_DATA_RICH_MESSAGE
 from utils import log, console, download_dataset, start_data_process_questionary
-import questionary
+
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -19,7 +19,7 @@ from rich.progress import (
 )
 from rich.live import Live
 
-class ProcessData:
+class ProcessDataStructure:
     """
     Class to process data before training.
     """
@@ -29,7 +29,7 @@ class ProcessData:
     @staticmethod
     def start(data_dir):
         log.info(f"'[→]' Starting dataset validation for '{data_dir}'")
-        process_data = ProcessData(data_dir)
+        process_data = ProcessDataStructure(data_dir)
         process_data._handle_data_directory
         process_data._check_dataset_structure
 
@@ -39,14 +39,14 @@ class ProcessData:
         if not os.listdir(self.data_dir):
             while True:
                 log.warning(f"Data directory '{self.data_dir}' is empty." 
-                            f"Please ensure there are images in the directory.")
+                            f"Please ensure there are images in the directory.\n")
                 
                 choice = start_data_process_questionary()
 
                 if choice == "Exit":
                     sys.exit("Exiting...")
                     
-                elif choice == "I'll provide my own dataset":
+                elif choice == "I have it":
                     # Show dataset structure information
                     self._dataset_organization_guide_message
                     

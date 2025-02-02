@@ -1,6 +1,6 @@
 from utils import get_train_terminal_args, log
 from pipeline.landing import WelcomeMessage
-from pipeline.process_data import ProcessData
+from pipeline.process_data import ProcessDataStructure
 from rich import console
 
 console = console.Console()
@@ -23,7 +23,8 @@ def main():
         # Handle data directory
         start_training.handle_data_directory(args.data_dir)
 
-        ProcessData.start(args.data_dir)
+        # Check and validate data directory and dataset structure
+        ProcessDataStructure.start(args.data_dir)
 
     except Exception as e:
         log.error(f"An error occurred: {str(e)}")

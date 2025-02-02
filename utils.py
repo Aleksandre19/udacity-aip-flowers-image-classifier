@@ -205,11 +205,19 @@ def download_dataset(url, tar_file, data_path):
     log.info("'[✓]' Dataset downloaded and extracted successfully!")
 
 def start_data_process_questionary():
+    console.print(Panel.fit(
+        "[info]The project uses the [arg]102 Category Flower Dataset.[/info]\n" 
+        "[info]More information can be found [example](ctr + click)[/example] [arg][link=https://www.robots.ox.ac.uk/~vgg/data/flowers/102/index.html]here[cyan]↗️[/cyan][/link][/arg]\n\n"
+        "[info]Use the following menu to choose[/info]\n"
+        "[info]how would you like to set up your dataset[/info]",
+        title="Dataset Information",
+        border_style="title"
+    ))
     return questionary.select(
-                    "How would you like to set up your dataset?",
+        "Choose an option",
         choices=[
             "Download sample dataset (recommended)",
-            "I'll provide my own dataset",
+            "I have it",
             "Exit"
         ],
         style=questionary.Style([

@@ -30,7 +30,7 @@ class WelcomeMessage:
 
     def start_training(self):
         # Ask the user if they want to continue
-        console.print("[info]Start Training? [desc](y/N)[/desc][/info]\n")
+        console.print("[info]Start Training?[desc](y/N)[/desc][/info]")
         while True:
             welcome = input().lower()
             allowed_answers = ['y', 'yes', 'n', 'no']
@@ -50,7 +50,7 @@ class WelcomeMessage:
         while True:
             console.print(f"[info]Please specify the data directory[/info]" 
                           f"[example](e.g., data/flowers)[/example] or type " 
-                          f"[error]exit[/error] to quit: ", end=" ")
+                          f"[error]exit[/error] to quit:", end=" ")
             data_dir = input().strip().lower()
 
             if data_dir == 'exit':
