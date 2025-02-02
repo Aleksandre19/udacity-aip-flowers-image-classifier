@@ -31,20 +31,25 @@ class WelcomeMessage:
     def start_training(self):
         # Ask the user if they want to continue
         console.print("[info]Start Training? [desc](y/N)[/desc][/info]\n")
-        welcome = input().lower()
+        while True:
+            welcome = input().lower()
+            allowed_answers = ['y', 'yes', 'n', 'no']
 
-        # If the user does not want to continue, exit
-        if welcome != 'y' and welcome != 'yes':
-            sys.exit("Exiting...")
-            return False
+            if welcome not in allowed_answers:
+                console.print(f"[info]should be [title](y|yes)[/title] or [title](n|no)[/title][/info]")
+                continue
+            
+            if welcome == 'n' or welcome == 'no':
+                console.print(f"Exiting...")
+                sys.exit()
 
-        return True
+            return True
 
     def set_data_directory(self):
         # Ask for data directory
         while True:
             console.print(f"[info]Please specify the data directory[/info]" 
-                          f"[example](e.g., data/flowers)[/example] or type" 
+                          f"[example](e.g., data/flowers)[/example] or type " 
                           f"[error]exit[/error] to quit: ", end=" ")
             data_dir = input().strip().lower()
 
