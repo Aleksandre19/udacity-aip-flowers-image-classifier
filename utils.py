@@ -18,6 +18,7 @@ from rich.progress import (
     TransferSpeedColumn,
 )
 from rich.theme import Theme
+import questionary
 
 
 def setup_logger():
@@ -203,26 +204,21 @@ def download_dataset(url, tar_file, data_path):
     tar_file.unlink()
     console.print("[green]✓[/green] Dataset downloaded and extracted successfully!")
 
-
-PROVIDE_DATA_RICH_MESSAGE = (
-    "[bold yellow]Dataset Structure Requirements[/bold yellow]\n\n"
-    "Your dataset should be organized as follows:\n"
-    "[blue]data_directory/[/blue]\n"
-    "├── [green]train/[/green]\n"
-    "│   ├── [yellow]1/[/yellow] (category number)\n"
-    "│   │   └── image1.jpg, image2.jpg, ...\n"
-    "│   ├── [yellow]2/[/yellow]\n"
-    "│   └── ...\n"
-    "├── [green]valid/[/green]\n"
-    "│   ├── [yellow]1/[/yellow]\n"
-    "│   └── ...\n"
-    "└── [green]test/[/green]\n"
-    "    ├── [yellow]1/[/yellow]\n"
-    "    └── ...\n\n"
-    "[bold]Important Notes:[/bold]\n"
-    "• Category numbers should match cat_to_name.json located in the root directory\n"
-    "• Each category folder should contain only image files\n"
-    "• Supported format: .jpg\n\n"
-    "[red]Press Enter to exit and organize your dataset...[/red]"
-)
+def start_data_process_questionary():
+    return questionary.select(
+                    "How would you like to set up your dataset?",
+        choices=[
+            "Download sample dataset (recommended)",
+            "I'll provide my own dataset",
+            "Exit"
+        ],
+        style=questionary.Style([
+            ('qmark', 'fg:yellow bold'),
+            ('question', 'bold'),
+            ('answer', 'fg:green bold'),
+            ('pointer', 'fg:yellow bold'),
+            ('highlighted', 'fg:yellow'),
+            ('selected', 'fg:green'),
+        ])
+    ).ask()
 

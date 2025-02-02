@@ -1,0 +1,23 @@
+DATASET_URL="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz"
+
+PROVIDE_DATA_RICH_MESSAGE = (
+    "[bold yellow]Dataset Structure Requirements[/bold yellow]\n\n"
+    "Your dataset should be organized as follows:\n"
+    "[blue]data_directory/[/blue]\n"
+    "├── [green]train/[/green]\n"
+    "│   ├── [yellow]1/[/yellow] (category number)\n"
+    "│   │   └── image1.jpg, image2.jpg, ...\n"
+    "│   ├── [yellow]2/[/yellow]\n"
+    "│   └── ...\n"
+    "├── [green]valid/[/green]\n"
+    "│   ├── [yellow]1/[/yellow]\n"
+    "│   └── ...\n"
+    "└── [green]test/[/green]\n"
+    "    ├── [yellow]1/[/yellow]\n"
+    "    └── ...\n\n"
+    "[bold]Important Notes:[/bold]\n"
+    "• Category numbers should match cat_to_name.json located in the root directory\n"
+    "• Each category folder should contain only image files\n"
+    "• Supported format: .jpg\n\n"
+    "[red]Press Enter to exit and organize your dataset...[/red]"
+)
