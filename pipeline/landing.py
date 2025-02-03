@@ -1,6 +1,6 @@
 import sys
 import os
-from utils import log, console
+from utils import log, console, questionary_default_style
 from rich.panel import Panel
 import questionary
 
@@ -10,20 +10,13 @@ class WelcomeMessage:
     """
     def __init__(self):
         self.display_welcome_message()
-        self.setup_data_directory()
+        self.continue_to_data_directory_setup()
 
     def display_welcome_message(self):
         """Interactive menu for selecting training parameters."""
 
         # Style for questionary
-        style = questionary.Style([
-            ('qmark', 'fg:yellow bold'),
-            ('question', 'bold'),
-            ('answer', 'fg:green bold'),
-            ('pointer', 'fg:yellow bold'),
-            ('highlighted', 'fg:yellow'),
-            ('selected', 'fg:green'),
-        ])
+        style = questionary_default_style()
 
         # Training parameters menu
         console.print(Panel.fit(
@@ -34,6 +27,23 @@ class WelcomeMessage:
             title="Flowers Image Classifier",
             border_style="title"
         ))
+
+        # Required data directory input
+        while True:
+            data_dir = questionary.text(
+                "(Required) Where do you want your dataset to live? (data/flowers)|(exit to quit):",
+                style=style
+            ).ask()
+
+            if data_dir == 'exit':
+                sys.exit("Exiting...")
+
+            if data_dir:
+                # Add data directory to args
+                sys.argv.append(data_dir)
+                break
+            else:
+                console.print("[error]Dataset directory is required to continue[/error]")
 
         # Save directory
         save_dir = questionary.text(
@@ -92,7 +102,10 @@ class WelcomeMessage:
             style=style
         ).ask()
 
-        # Update sys.argv with selected parameters
+        # Update sys.argv for argument parsing
+        sys.argv = [sys.argv[0]]  # Keep the script name
+        sys.argv.append(data_dir)  # Add data directory as positional arg
+        
         if save_dir and save_dir != "checkpoints":
             sys.argv.extend(['--save_dir', save_dir])
         if arch and 'default' not in arch:
@@ -108,7 +121,7 @@ class WelcomeMessage:
             sys.argv.append('--gpu')
 
 
-    def setup_data_directory(self):
+    def continue_to_data_directory_setup(self):
         # Continue with dataset direcotry setup
         console.print(Panel.fit(
             "[desc]The following steps will setup the dataset directory.[/desc]\n"
@@ -117,15 +130,9 @@ class WelcomeMessage:
             title="Dataset Directory Setup",
             border_style="title"
         ))
+
         # Style for questionary
-        style = questionary.Style([
-            ('qmark', 'fg:yellow bold'),
-            ('question', 'bold'),
-            ('answer', 'fg:green bold'),
-            ('pointer', 'fg:yellow bold'),
-            ('highlighted', 'fg:yellow'),
-            ('selected', 'fg:green'),
-        ])
+        style = questionary_default_style()
 
         # Ask if user wants to continue
         if not questionary.confirm(
@@ -141,6 +148,18 @@ class WelcomeMessage:
 
     def set_data_directory(self):
         # Ask for data directory
+
+        style = questionary_default_style()
+
+        # Ask if user wants to continue
+        if not questionary.confirm(
+            "Please specify the data directory (e.g., data/flowers) or press Enter to exit",
+            default=False,
+            style=style
+        ).ask():
+            console.print(f"Exiting...")
+            sys.exit()
+
         while True:
             console.print(f"[info]Please specify the data directory[/info]" 
                           f"[example](e.g., data/flowers)[/example] or type " 

@@ -229,3 +229,13 @@ def start_data_process_questionary():
             ('selected', 'fg:green'),
         ])
     ).ask()
+
+def questionary_default_style():
+    return questionary.Style([
+            ('qmark', 'fg:yellow bold'),
+            ('question', 'bold'),
+            ('answer', 'fg:green bold'),
+            ('pointer', 'fg:yellow bold'),
+            ('highlighted', 'fg:yellow'),
+            ('selected', 'fg:green')
+        ])
