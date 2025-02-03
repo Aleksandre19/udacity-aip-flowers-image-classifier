@@ -1,6 +1,6 @@
 import sys
 import os
-from utils import log, console, questionary_default_style
+from utils import log, console, questionary_default_style, get_train_terminal_args
 from rich.panel import Panel
 import questionary
 
@@ -14,7 +14,7 @@ class WelcomeMessage:
 
     def display_welcome_message(self):
         """Interactive menu for selecting training parameters."""
-
+    
         # Style for questionary
         style = questionary_default_style()
 
@@ -28,22 +28,26 @@ class WelcomeMessage:
             border_style="title"
         ))
 
+        args = get_train_terminal_args()
+        data_dir = args.data_dir if args else None
         # Required data directory input
-        while True:
-            data_dir = questionary.text(
-                "(Required) Where do you want your dataset to live? (data/flowers)|(exit to quit):",
-                style=style
-            ).ask()
+        # Skip if a user provided it in the command line
+        if not data_dir:
+            while True:
+                data_dir = questionary.text(
+                    "(Required) Where do you want your dataset to live? (data/flowers)|(exit to quit):",
+                    style=style
+                ).ask()
 
-            if data_dir == 'exit':
-                sys.exit("Exiting...")
+                if data_dir == 'exit':
+                    sys.exit("Exiting...")
 
-            if data_dir:
-                # Add data directory to args
-                sys.argv.append(data_dir)
-                break
-            else:
-                console.print("[error]Dataset directory is required to continue[/error]")
+                if data_dir:
+                    # Add data directory to args
+                    sys.argv.append(data_dir)
+                    break
+                else:
+                    console.print("[error]Dataset directory is required to continue[/error]")
 
         # Save directory
         save_dir = questionary.text(
@@ -145,41 +149,3 @@ class WelcomeMessage:
 
         return True
 
-
-    def set_data_directory(self):
-        # Ask for data directory
-
-        style = questionary_default_style()
-
-        # Ask if user wants to continue
-        if not questionary.confirm(
-            "Please specify the data directory (e.g., data/flowers) or press Enter to exit",
-            default=False,
-            style=style
-        ).ask():
-            console.print(f"Exiting...")
-            sys.exit()
-
-        while True:
-            console.print(f"[info]Please specify the data directory[/info]" 
-                          f"[example](e.g., data/flowers)[/example] or type " 
-                          f"[error]exit[/error] to quit:", end=" ")
-            data_dir = input().strip().lower()
-
-            if data_dir == 'exit':
-                sys.exit("Exiting...")
-
-            if data_dir:       
-                break
-            
-        # Append data directory to terminal arguments
-        sys.argv.append(data_dir)
-
-
-    def handle_data_directory(self, data_dir):
-        """Handle data directory creation if it doesn't exist."""
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
-            log.info(f"'[✓]' Created data directory:'{data_dir}'")
-        else:
-            log.info(f"'[✓]' Using existing data directory:'{data_dir}'")

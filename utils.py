@@ -19,6 +19,7 @@ from rich.progress import (
 )
 from rich.theme import Theme
 import questionary
+from constants import PROVIDE_DATA_RICH_MESSAGE
 
 
 def setup_logger():
@@ -83,17 +84,8 @@ class InfoAction(argparse.Action):
     """
     def __call__(self, parser, namespace, values, option_string=None):
         console.print(Panel.fit(
-            "[info]Command Line Arguments Information[/info]\n\n"
-            "• [arg]data_dir[/arg]: [desc]Directory containing your training images[/desc] (Required)\n"
-            "• [arg]--save_dir[/arg]: [desc]Save trained model checkpoints to this directory[/desc] (default: checkpoints)\n"
-            "• [arg]--arch[/arg]: [desc]Neural network architecture to use[/desc] (default: vgg16)(avaliables: vgg11, vgg13, vgg19)\n"
-            "• [arg]--learning_rate[/arg]: [desc]How fast the model learns during training[/desc] (default: 0.0001)\n"
-            "• [arg]--hidden_units[/arg]: [desc]Number of neurons in hidden layers[/desc] (default: [4096, 1024])\n"
-            "• [arg]--epochs[/arg]: [desc]Number of complete training cycles[/desc] (default: 17)\n"
-            "• [arg]--gpu[/arg]: [desc]Use GPU for faster training if available[/desc] (default: False)\n\n"
-            "[info]Example:[/info]\n"
-            "[example]python train.py flowers/dataset --arch vgg16 --gpu[/example]",
-            title="Training Model",
+            f"{PROVIDE_DATA_RICH_MESSAGE}",
+            title="Flowers Image Classifier Information",
             border_style="title"
         ))
         parser.exit()
@@ -104,15 +96,27 @@ def get_train_terminal_args():
     Define terminal arguments for training a model.
     """
 
-    # Check if we have any arguments before creating parser
-    if len(sys.argv) == 1:
-        return None
-
+    # Create parser first to handle info flag
     parser = CustomArgumentParser(
         description='Train a neural network on a dataset of images',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         usage='example: python3 train.py "data/directory"'
     )
+
+    # Add info argument first to ensure it's checked before other arguments
+    parser.add_argument('--info',
+                    action=InfoAction,
+                    nargs=0,
+                    help='show detailed information about the script')
+
+    # Check if we only have --info flag
+    if len(sys.argv) == 2 and sys.argv[1] == '--info':
+        parser.parse_args()
+        sys.exit(0)
+
+    # Check if we have any arguments besides script name
+    if len(sys.argv) == 1:
+        return None
 
     # Required argument
     parser.add_argument('data_dir',
@@ -130,11 +134,6 @@ def get_train_terminal_args():
                         default='vgg16',
                         choices=['vgg11', 'vgg13', 'vgg16', 'vgg19'],
                         help='Used model architecture')
-
-    parser.add_argument('--info',
-                        action=InfoAction,
-                        nargs=0,
-                        help='show detailed information about the script')
                             
     parser.add_argument('--learning_rate', 
                         type=float,

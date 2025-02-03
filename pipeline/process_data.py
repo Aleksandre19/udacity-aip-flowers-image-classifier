@@ -28,46 +28,63 @@ class ProcessDataStructure:
     
     @staticmethod
     def start(data_dir):
-        log.info(f"'[→]' Starting dataset validation for '{data_dir}'")
+        console.print(f"[example][→][/example] Starting dataset validation for [arg]'{data_dir}'[/arg]")
         process_data = ProcessDataStructure(data_dir)
+        process_data._create_data_directory
         process_data._handle_data_directory
         process_data._check_dataset_structure
+
+    
+    @property
+    def _create_data_directory(self):
+        """Handle data directory creation if it doesn't exist."""
+        if not os.path.exists(self.data_dir):
+            os.makedirs(self.data_dir)
+            console.print(f"[example][✓][/example] Created data directory:[arg]'{self.data_dir}'[/arg]")
+        else:
+            console.print(f"[example][✓][/example] Using existing data directory:[arg]'{self.data_dir}'[/arg]")
 
     @property
     def _handle_data_directory(self):
         """Handle data directory creation if it doesn't exist."""
-        if not os.listdir(self.data_dir):
-            while True:
-                log.warning(f"Data directory '{self.data_dir}' is empty." 
-                            f"Please ensure there are images in the directory.\n")
+
+        # If directory exists and is not empty, return
+        if not os.path.exists(self.data_dir):
+            console.print(f"[error][→][/error] Data directory must be provided to continue.\n"
+                          f"Please start the training again and provide a valid data directory. \n\n")
+            console.print("Press Enter to exit...")
+            sys.exit("Exiting...")
+       
+        while True:
+            console.print(f"[example][→][/example] Data directory [arg]'{self.data_dir}'[/arg] is empty.\n")
+            
+            choice = start_data_process_questionary()
+
+            if choice == "Exit":
+                sys.exit("Exiting...")
                 
-                choice = start_data_process_questionary()
-
-                if choice == "Exit":
-                    sys.exit("Exiting...")
+            elif choice == "I have it":
+                # Show dataset structure information
+                self._dataset_organization_guide_message
+                
+            elif choice == "Download sample dataset (recommended)":
+                try:
+                    # Create data directory if it doesn't exist
+                    data_path = Path(self.data_dir)
+                    data_path.mkdir(parents=True, exist_ok=True)
                     
-                elif choice == "I have it":
-                    # Show dataset structure information
-                    self._dataset_organization_guide_message
-                    
-                elif choice == "Download sample dataset (recommended)":
-                    try:
-                        # Create data directory if it doesn't exist
-                        data_path = Path(self.data_dir)
-                        data_path.mkdir(parents=True, exist_ok=True)
-                        
-                        url = DATASET_URL
-                        tar_file = data_path / "flower_data.tar.gz"
+                    url = DATASET_URL
+                    tar_file = data_path / "flower_data.tar.gz"
 
-                        download_dataset(url, tar_file, data_path)
-                        
-                        return
-                    except subprocess.CalledProcessError as e:
-                        log.error(f"Failed to download or extract dataset: {str(e)}")
-                        sys.exit(1)
-                    except Exception as e:
-                        log.error(f"An error occurred: {str(e)}")
-                        sys.exit(1)
+                    download_dataset(url, tar_file, data_path)
+                    
+                    return
+                except subprocess.CalledProcessError as e:
+                    log.error(f"Failed to download or extract dataset: {str(e)}")
+                    sys.exit(1)
+                except Exception as e:
+                    log.error(f"An error occurred: {str(e)}")
+                    sys.exit(1)
 
     @property
     def _check_dataset_structure(self):
@@ -136,7 +153,7 @@ class ProcessDataStructure:
         ):
             return False
 
-        log.info("'[✓]' Dataset structure validation completed successfully!")
+        console.print("[example][✓][/example] Dataset validation completed successfully!")
         return True
 
     def _validation_steps(self, start_message, error_message, end_message, validation_func):
@@ -183,9 +200,14 @@ class ProcessDataStructure:
         console.clear_live()
         # Show the guide message
         console.print(Panel.fit(
-            PROVIDE_DATA_RICH_MESSAGE,
-            title="Dataset Organization Guide",
-            border_style="title")
+            "[info]Dataset should have the following structure:[/info]\n"
+            "[blue]data_directory/[/blue]\n"
+            "[green]├── train/[/green] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
+            "[green]├── valid/[/green] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
+            "[green]└── test/ [/green] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
+            "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]",
+            title="[bold]Dataset Organization Guide[/bold]",
+            border_style="blue")
         )
         
         input("\nPress Enter to exit...")
