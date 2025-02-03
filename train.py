@@ -8,11 +8,9 @@ console = console.Console()
 
 def main():
     try:
-        # Get terminal arguments first to handle --info
+        # Parse command line args to check for --info
         args = get_train_terminal_args()
-        
-        # Only show welcome message if not using --info
-        if '--info' in sys.argv:
+        if args and args.info:
             return
         # Welcome message
         start_training = WelcomeMessage()
@@ -20,9 +18,6 @@ def main():
         # If the user does not want to continue, exit
         if not start_training:
             return
-
-        # Get terminal arguments second time to grab data_dir
-        args = get_train_terminal_args()
 
         # Check and validate data directory and dataset structure
         ProcessDataStructure.start(args.data_dir)

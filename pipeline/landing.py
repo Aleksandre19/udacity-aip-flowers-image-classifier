@@ -1,5 +1,7 @@
+from ast import arg
 import sys
 import os
+import turtle
 from utils import log, console, questionary_default_style, get_train_terminal_args
 from rich.panel import Panel
 import questionary
@@ -20,7 +22,7 @@ class WelcomeMessage:
 
         # Training parameters menu
         console.print(Panel.fit(
-            "[desc]Welcome to Flowers Image Classifier Training![/desc]\n\n"
+            "[info]Welcome to Flowers Image Classifier Training![/info]\n\n"
             "[desc]You are about to start training a neural network to classify different types of flowers.\n"
             "Please answer the following questions to specify the training parameters.[/desc]\n\n"
             "[info]Press Enter to use default values[/info]",
@@ -29,36 +31,18 @@ class WelcomeMessage:
         ))
 
         args = get_train_terminal_args()
-        data_dir = args.data_dir if args else None
-        # Required data directory input
-        # Skip if a user provided it in the command line
-        if not data_dir:
-            while True:
-                data_dir = questionary.text(
-                    "(Required) Where do you want your dataset to live? (data/flowers)|(exit to quit):",
-                    style=style
-                ).ask()
-
-                if data_dir == 'exit':
-                    sys.exit("Exiting...")
-
-                if data_dir:
-                    # Add data directory to args
-                    sys.argv.append(data_dir)
-                    break
-                else:
-                    console.print("[error]Dataset directory is required to continue[/error]")
 
         # Save directory
         save_dir = questionary.text(
-            "Save Directory: Where to save model checkpoints (default: checkpoints):",
-            default="checkpoints",
+            f"Save Directory: Where to save model checkpoints (current: {args.save_dir}):",
+            default=f"{args.save_dir}",
             style=style
         ).ask()
+        args.save_dir = save_dir
 
         # Architecture selection
         arch = questionary.select(
-            "Model Architecture: Neural network backbone (default: vgg16):",
+            f"Model Architecture: Neural network backbone (current: {args.arch}):",
             choices=[
                 "vgg16 (default)",
                 "vgg11",
@@ -68,13 +52,16 @@ class WelcomeMessage:
             default="vgg16 (default)",
             style=style
         ).ask()
+        args.arch = [a for a in arch.split() if len(a) > 0][0]
 
         # Hidden units input
         hidden_units = questionary.text(
-            "Hidden Units: Neurons in hidden layers (default: 4096,1024):",
-            validate=lambda x: all(u.isdigit() and int(u) > 0 for u in x.split(',')) if x else True,
+            f"Hidden Units: Neurons in hidden layers (current: {','.join(map(str, args.hidden_units))}):",
+            validate=lambda x: bool(x.strip() and all(u.strip().isdigit() and int(u.strip()) > 0 for u in x.split(','))),
+            default=f"{','.join(map(str, args.hidden_units))}",
             style=style
         ).ask()
+        args.hidden_units = list(map(int, hidden_units.split(',')))
 
         # Learning rate input with better validation
         def validate_float(text):
@@ -87,44 +74,30 @@ class WelcomeMessage:
                 return False
 
         learning_rate = questionary.text(
-            "Learning Rate: How fast model learns (default: 0.0001):",
+            f"Learning Rate: How fast model learns (current: {args.learning_rate}):",
             validate=validate_float,
+            default=f"{args.learning_rate}",
             style=style
         ).ask()
+        args.learning_rate = learning_rate
 
         # Epochs input
         epochs = questionary.text(
-            "Epochs: Training cycles (default: 17):",
+            f"Epochs: Training cycles (current: {args.epochs}):",
             validate=lambda x: x.isdigit() and 0 < int(x) <= 100 if x else True,
+            default=f"{args.epochs}",
             style=style
         ).ask()
+        args.epochs = epochs
 
         # GPU option
         gpu = questionary.confirm(
-            "GPU: Use GPU acceleration (default: False):\n",
-            default=False,
+            f"GPU: Use GPU acceleration (current: {args.gpu}):",
+            default=args.gpu,
             style=style
         ).ask()
-
-        # Update sys.argv for argument parsing
-        sys.argv = [sys.argv[0]]  # Keep the script name
-        sys.argv.append(data_dir)  # Add data directory as positional arg
+        args.gpu = gpu
         
-        if save_dir and save_dir != "checkpoints":
-            sys.argv.extend(['--save_dir', save_dir])
-        if arch and 'default' not in arch:
-            sys.argv.extend(['--arch', arch.split()[0]])
-        if hidden_units:
-            units = [int(u) for u in hidden_units.split(',')]
-            sys.argv.extend(['--hidden_units', str(units)])
-        if learning_rate:
-            sys.argv.extend(['--learning_rate', learning_rate])
-        if epochs:
-            sys.argv.extend(['--epochs', epochs])
-        if gpu:
-            sys.argv.append('--gpu')
-
-
     def continue_to_data_directory_setup(self):
         # Continue with dataset direcotry setup
         console.print(Panel.fit(
@@ -148,4 +121,3 @@ class WelcomeMessage:
             sys.exit()
 
         return True
-

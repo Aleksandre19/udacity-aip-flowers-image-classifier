@@ -109,15 +109,6 @@ def get_train_terminal_args():
                     nargs=0,
                     help='show detailed information about the script')
 
-    # Check if we only have --info flag
-    if len(sys.argv) == 2 and sys.argv[1] == '--info':
-        parser.parse_args()
-        sys.exit(0)
-
-    # Check if we have any arguments besides script name
-    if len(sys.argv) == 1:
-        return None
-
     # Required argument
     parser.add_argument('data_dir',
                         type=str,
@@ -201,7 +192,7 @@ def download_dataset(url, tar_file, data_path):
     
     # Clean up
     tar_file.unlink()
-    log.info("'[✓]' Dataset downloaded and extracted successfully!")
+    console.print("[green]✓[/green] Dataset downloaded and extracted successfully!")
 
 def start_data_process_questionary():
     console.print(Panel.fit(
