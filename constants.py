@@ -31,3 +31,23 @@ PROVIDE_DATA_RICH_MESSAGE = (
     "• Each category folder should contain only image files\n"
     "• Supported format: .jpg\n"
 )
+
+
+DATA_STRUCTURE_MESSAGE = (
+   "[info]Dataset should have the following structure:[/info]\n"
+   "[blue]data_directory/[/blue]\n"
+   "[green]├── train/[/green] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
+   "[green]├── valid/[/green] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
+   "[green]└── test/ [/green] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
+   "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]",
+)
+
+
+DATA_PREPROCESS_MESSAGE = (
+   "[info]Dataset should have the following structure:[/info]\n"
+   "[blue]data_directory/[/blue]\n"
+   "[green]├── train/[/green] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
+   "[green]├── valid/[/green] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
+   "[green]└── test/ [/green] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
+   "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]",
+)

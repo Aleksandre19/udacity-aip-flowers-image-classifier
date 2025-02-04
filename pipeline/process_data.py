@@ -5,7 +5,7 @@ import subprocess
 from time import sleep
 
 from rich.panel import Panel
-from constants import DATASET_URL, PROVIDE_DATA_RICH_MESSAGE
+from constants import DATA_STRUCTURE_MESSAGE, DATASET_URL, PROVIDE_DATA_RICH_MESSAGE
 from utils import log, console, download_dataset, start_data_process_questionary
 
 from rich.progress import (
@@ -201,12 +201,7 @@ class ProcessDataStructure:
         console.clear_live()
         # Show the guide message
         console.print(Panel.fit(
-            "[info]Dataset should have the following structure:[/info]\n"
-            "[blue]data_directory/[/blue]\n"
-            "[green]├── train/[/green] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
-            "[green]├── valid/[/green] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
-            "[green]└── test/ [/green] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
-            "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]",
+            DATA_STRUCTURE_MESSAGE,
             title="[bold]Dataset Organization Guide[/bold]",
             border_style="blue")
         )
