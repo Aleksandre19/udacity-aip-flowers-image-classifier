@@ -25,7 +25,7 @@ class ProcessDataStructure:
     """
     def __init__(self, data_dir):
         self.data_dir = data_dir
-    
+
     @staticmethod
     def start(data_dir):
         console.print(f"[example][→][/example] Starting dataset validation for [arg]'{data_dir}'[/arg]")
@@ -65,7 +65,8 @@ class ProcessDataStructure:
                 
             elif choice == "I have it":
                 # Show dataset structure information
-                self._dataset_organization_guide_message
+                console.print("[example][→][/example] Validating dataset...")
+                break
                 
             elif choice == "Download sample dataset (recommended)":
                 try:
