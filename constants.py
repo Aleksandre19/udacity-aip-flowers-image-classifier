@@ -15,15 +15,15 @@ PROVIDE_DATA_RICH_MESSAGE = (
     "[bold info]Dataset Structure Requirements[/bold info]\n"
     "Your dataset should be organized as follows:\n"
     "[blue]data_directory/[/blue]\n"
-    "├── [green]train/[/green]\n"
+    "├── [desc]train/[/desc]\n"
     "│   ├── [yellow]1/[/yellow] (category number)\n"
     "│   │   └── image1.jpg, image2.jpg, ...\n"
     "│   ├── [yellow]2/[/yellow]\n"
     "│   └── ...\n"
-    "├── [green]valid/[/green]\n"
+    "├── [desc]valid/[/desc]\n"
     "│   ├── [yellow]1/[/yellow]\n"
     "│   └── ...\n"
-    "└── [green]test/[/green]\n"
+    "└── [desc]test/[/desc]\n"
     "    ├── [yellow]1/[/yellow]\n"
     "    └── ...\n\n"
     "[bold yellow]Important Notes:[/bold yellow]\n"
@@ -36,18 +36,16 @@ PROVIDE_DATA_RICH_MESSAGE = (
 DATA_STRUCTURE_MESSAGE = (
    "[info]Dataset should have the following structure:[/info]\n"
    "[blue]data_directory/[/blue]\n"
-   "[green]├── train/[/green] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
-   "[green]├── valid/[/green] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
-   "[green]└── test/ [/green] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
-   "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]",
+   "[desc]├── train/[/desc] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
+   "[desc]├── valid/[/desc] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
+   "[desc]└── test/ [/desc] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
+   "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]\n\n",
 )
 
 
 DATA_PREPROCESS_MESSAGE = (
-   "[info]Dataset should have the following structure:[/info]\n"
-   "[blue]data_directory/[/blue]\n"
-   "[green]├── train/[/green] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
-   "[green]├── valid/[/green] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
-   "[green]└── test/ [/green] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
-   "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]",
+   "[info]Your are about to preprocess your data:[/info]\n\n"
+    "• [desc] Data will be split into train, valid, and test sets.[/desc]\n"
+    "• [desc] Transformations will be applied to images[/desc]\n"
+    "• [desc] It will be loaded into DataLoaders[/desc]\n\n"
 )

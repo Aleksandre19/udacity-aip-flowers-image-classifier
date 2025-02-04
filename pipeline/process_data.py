@@ -154,7 +154,7 @@ class ProcessDataStructure:
         ):
             return False
 
-        console.print("[example][✓][/example] Dataset validation completed successfully!")
+        console.print("[example][✓][/example] Dataset validation completed successfully!\n")
         return True
 
     def _validation_steps(self, start_message, error_message, end_message, validation_func):

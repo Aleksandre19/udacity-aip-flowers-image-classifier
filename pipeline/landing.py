@@ -97,7 +97,10 @@ class WelcomeMessage:
             style=style
         ).ask()
         args.gpu = gpu
-        
+
+        print("")
+
+
     def continue_to_data_directory_setup(self):
         # Continue with dataset direcotry setup
         console.print(Panel.fit(

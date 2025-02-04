@@ -199,7 +199,7 @@ def start_data_process_questionary():
         "[info]The project uses the [arg]102 Category Flower Dataset.[/info]\n" 
         "[info]More information can be found [example](ctr + click)[/example] [arg][link=https://www.robots.ox.ac.uk/~vgg/data/flowers/102/index.html]here[cyan]↗️[/cyan][/link][/arg]\n\n"
         "[info]Use the following menu to choose[/info]\n"
-        "[info]how would you like to set up your dataset[/info]",
+        "[info]how would you like to set up your dataset[/info]\n",
         title="Dataset Information",
         border_style="title"
     ))

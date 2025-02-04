@@ -21,6 +21,8 @@ def main():
         # Check and validate data directory and dataset structure
         ProcessDataStructure.start(args.data_dir)
 
+        # Transforming dataset and creating DataLoaders for 
+        # train, validation and test datasets
         PreprocessData.start(args.data_dir)
 
     except Exception as e:
