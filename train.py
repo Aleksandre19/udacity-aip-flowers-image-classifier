@@ -3,10 +3,16 @@ from utils import get_train_terminal_args, log
 from pipeline import WelcomeMessage, ProcessDataStructure, PreprocessData, TrainModel
 from rich import console
 
+import plotext as plt
+
+
+
 console = console.Console()
 
 def main():
     try:
+        # plt.plot([1, 2, 3], [1, 2, 3])
+        # plt.show()
         # Parse command line args to check for --info
         args = get_train_terminal_args()
         if args and args.info:

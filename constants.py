@@ -60,5 +60,8 @@ MODEL_TRAIN_MESSAGE = (
     "• [desc] Finally model will be trained [/desc]\n"
 )
 
-# Downloading: "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" to 
-# /home/aleksandre/.cache/torch/hub/checkpoints/vgg19-dcbb9e9d.pth
+CURRENT_MODEL_ARCHITECTURE_MESSAGE = (
+   "This is the current model classifier architecture.\n"
+   "in the next step it will be modified according to the\n"
+   "structure you specified in the hidden layers.\n\n"
+)

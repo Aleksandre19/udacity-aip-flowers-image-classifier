@@ -42,7 +42,8 @@ light_theme = Theme({
     'example': 'blue',
     'title': 'cyan',
     'error': 'red',
-    'info': 'yellow'
+    'info': 'yellow',
+    'purple': 'magenta'
 })
 
 dark_theme = Theme({
@@ -51,7 +52,8 @@ dark_theme = Theme({
     'example': 'bright_cyan',
     'title': 'bright_cyan',
     'error': 'bright_red',
-    'info': 'bright_yellow'
+    'info': 'bright_yellow',
+    'purple': 'bright_magenta'
 })
 
 # Initialize rich console
