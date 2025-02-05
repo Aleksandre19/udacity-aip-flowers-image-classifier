@@ -59,3 +59,6 @@ MODEL_TRAIN_MESSAGE = (
     "• [desc] Criterion, Optimizer, and Hyperparameters will be initialized[/desc]\n"
     "• [desc] Finally model will be trained [/desc]\n"
 )
+
+# Downloading: "https://download.pytorch.org/models/vgg19-dcbb9e9d.pth" to 
+# /home/aleksandre/.cache/torch/hub/checkpoints/vgg19-dcbb9e9d.pth

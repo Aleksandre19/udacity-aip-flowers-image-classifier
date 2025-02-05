@@ -11,6 +11,7 @@ class WelcomeMessage:
     Welcome message with the training parameters menu for specifying the training parameters.
     """
     def __init__(self):
+        self._args = None
         self.display_welcome_message()
         self.continue_to_data_directory_setup()
 
@@ -30,19 +31,19 @@ class WelcomeMessage:
             border_style="title"
         ))
 
-        args = get_train_terminal_args()
+        self._args = get_train_terminal_args()
 
         # Save directory
         save_dir = questionary.text(
-            f"Save Directory: Where to save model checkpoints (current: {args.save_dir}):",
-            default=f"{args.save_dir}",
+            f"Save Directory: Where to save model checkpoints (current: {self._args.save_dir}):",
+            default=f"{self._args.save_dir}",
             style=style
         ).ask()
-        args.save_dir = save_dir
+        self._args.save_dir = save_dir
 
         # Architecture selection
         arch = questionary.select(
-            f"Model Architecture: Neural network backbone (current: {args.arch}):",
+            f"Model Architecture: Neural network backbone (current: {self._args.arch}):",
             choices=[
                 "vgg16 (default)",
                 "vgg11",
@@ -52,16 +53,16 @@ class WelcomeMessage:
             default="vgg16 (default)",
             style=style
         ).ask()
-        args.arch = [a for a in arch.split() if len(a) > 0][0]
+        self._args.arch = [a for a in arch.split() if len(a) > 0][0]
 
         # Hidden units input
         hidden_units = questionary.text(
-            f"Hidden Units: Neurons in hidden layers (current: {','.join(map(str, args.hidden_units))}):",
+            f"Hidden Units: Neurons in hidden layers (current: {','.join(map(str, self._args.hidden_units))}):",
             validate=lambda x: bool(x.strip() and all(u.strip().isdigit() and int(u.strip()) > 0 for u in x.split(','))),
-            default=f"{','.join(map(str, args.hidden_units))}",
+            default=f"{','.join(map(str, self._args.hidden_units))}",
             style=style
         ).ask()
-        args.hidden_units = list(map(int, hidden_units.split(',')))
+        self._args.hidden_units = list(map(int, hidden_units.split(',')))
 
         # Learning rate input with better validation
         def validate_float(text):
@@ -74,31 +75,36 @@ class WelcomeMessage:
                 return False
 
         learning_rate = questionary.text(
-            f"Learning Rate: How fast model learns (current: {args.learning_rate}):",
+            f"Learning Rate: How fast model learns (current: {self._args.learning_rate}):",
             validate=validate_float,
-            default=f"{args.learning_rate}",
+            default=f"{self._args.learning_rate}",
             style=style
         ).ask()
-        args.learning_rate = learning_rate
+        self._args.learning_rate = learning_rate
 
         # Epochs input
         epochs = questionary.text(
-            f"Epochs: Training cycles (current: {args.epochs}):",
+            f"Epochs: Training cycles (current: {self._args.epochs}):",
             validate=lambda x: x.isdigit() and 0 < int(x) <= 100 if x else True,
-            default=f"{args.epochs}",
+            default=f"{self._args.epochs}",
             style=style
         ).ask()
-        args.epochs = epochs
+        self._args.epochs = epochs
 
         # GPU option
         gpu = questionary.confirm(
-            f"GPU: Use GPU acceleration (current: {args.gpu}):",
-            default=args.gpu,
+            f"GPU: Use GPU acceleration (current: {self._args.gpu}):",
+            default=self._args.gpu,
             style=style
         ).ask()
-        args.gpu = gpu
+        self._args.gpu = gpu
 
         print("")
+
+    @property
+    def args(self):
+        return self._args
+
 
 
     def continue_to_data_directory_setup(self):
