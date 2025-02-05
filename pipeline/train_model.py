@@ -17,9 +17,9 @@ class TrainModel:
     @staticmethod
     def start(args):
         train = TrainModel(args)
-        train._print_model_classifier()
+        train._print_model_classifier(CURRENT_MODEL_ARCHITECTURE_MESSAGE)
         custom_classifier = CustomClassifier(args)
-        print(custom_classifier)
+        train._replace_classifier(custom_classifier)
 
     @property
     def pre_train_message(self):
@@ -57,8 +57,18 @@ class TrainModel:
         console.print(f"[example][✓][/example] The model [arg]'{self.args.arch}'[/arg] was successfully loaded")
         return model
 
+    def _replace_classifier(self, new_classifier, message=""):
+        """
+        Replace the current model classifier with the new one.
+        """
+        self.model.classifier = new_classifier
 
-    def _print_model_classifier(self):
+        console.print(f"[example][✓][/example] The model classifier was successfully replaced")
+        
+        message = "Next you will set up the Criterion, Optimizer and Hyperparameters\n\nArchitecture of new classifier.\n"
+        self._print_model_classifier(message)
+    
+    def _print_model_classifier(self, message=""):
         """
         Print the current model classifier architecture with custom formatting.
         """
@@ -95,7 +105,7 @@ class TrainModel:
         formatted_lines.append("[purple])[/purple]")
         
         # Join all lines
-        formatted_str = CURRENT_MODEL_ARCHITECTURE_MESSAGE + '\n'.join(formatted_lines)
+        formatted_str = message + '\n'.join(formatted_lines)
         
         # Print the formatted string with a title
         console.print(Panel(
