@@ -10,16 +10,20 @@ from rich.panel import Panel
 class TrainModel:
     def __init__(self, args):
         self.args = args
+        self.lr = float(self.args.learning_rate)
         self.pre_train_message
-        self.device = self._define_device()
-        self.model = self._get_model(self.args.arch)
+        self.device = self.define_device()
+        self.model = self.get_model(self.args.arch)
+        self.optimizer = None
+        self.criterion = None
 
     @staticmethod
     def start(args):
         train = TrainModel(args)
-        train._print_model_classifier(CURRENT_MODEL_ARCHITECTURE_MESSAGE)
+        train.print_model_classifier(CURRENT_MODEL_ARCHITECTURE_MESSAGE)
         custom_classifier = CustomClassifier(args)
-        train._replace_classifier(custom_classifier)
+        train.replace_classifier(custom_classifier)
+        train.initialize_optimizer_and_criterion()
 
     @property
     def pre_train_message(self):
@@ -33,12 +37,12 @@ class TrainModel:
 
         console.print(f"[example][→][/example] Starting Model Training...")
 
-    def _define_device(self):
+    def define_device(self):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         console.print(f"[example][✓][/example] Set the device to:[arg]'{device}'[/arg]")
         return device
 
-    def _get_model(self, model_name):
+    def get_model(self, model_name):
         model_mapping = {
             "vgg11": (models.vgg11, models.VGG11_Weights.DEFAULT),
             "vgg13": (models.vgg13, models.VGG13_Weights.DEFAULT),
@@ -57,7 +61,7 @@ class TrainModel:
         console.print(f"[example][✓][/example] The model [arg]'{self.args.arch}'[/arg] was successfully loaded")
         return model
 
-    def _replace_classifier(self, new_classifier, message=""):
+    def replace_classifier(self, new_classifier, message=""):
         """
         Replace the current model classifier with the new one.
         """
@@ -66,9 +70,18 @@ class TrainModel:
         console.print(f"[example][✓][/example] The model classifier was successfully replaced")
         
         message = "Next you will set up the Criterion, Optimizer and Hyperparameters\n\nArchitecture of new classifier.\n"
-        self._print_model_classifier(message)
-    
-    def _print_model_classifier(self, message=""):
+        self.print_model_classifier(message)
+
+
+    def initialize_optimizer_and_criterion(self):
+        """
+        Initialize the parameters of the new classifier.
+        """
+        self.criterion = nn.NLLLoss()
+        self.optimizer = torch.optim.Adam(self.model.classifier.parameters(), lr=self.lr)
+        console.print(f"[example][✓][/example] Optimizer and Criterion were successfully initialized")
+
+    def print_model_classifier(self, message=""):
         """
         Print the current model classifier architecture with custom formatting.
         """
