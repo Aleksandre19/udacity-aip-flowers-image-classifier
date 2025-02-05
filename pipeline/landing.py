@@ -117,6 +117,15 @@ class WelcomeMessage:
         ).ask()
         self._args.epochs = int(epochs)
 
+        # Validation interval
+        validation_interval = questionary.text(
+            f"Validation Interval: How often to validate (current: {self._args.valid_interval}):",
+            validate=lambda x: x.isdigit() if x else False,
+            default=f"{self._args.valid_interval}",
+            style=style
+        ).ask()
+        self._args.valid_interval = int(validation_interval)
+
         # GPU option
         gpu = questionary.confirm(
             f"GPU: Use GPU acceleration (current: {self._args.gpu}):",

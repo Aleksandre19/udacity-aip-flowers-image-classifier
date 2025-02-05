@@ -158,6 +158,11 @@ def get_train_terminal_args():
                         default=17,
                         help='number of epochs for training')
 
+    parser.add_argument('--valid_interval', 
+                        type=int,
+                        default=100,
+                        help='number of validation interval')
+
     parser.add_argument('--gpu', 
                         action='store_true',
                         help='use GPU for training if available')

@@ -19,6 +19,7 @@ class TrainModel:
         self.optimizer = None
         self.criterion = None
         self.steps = 0
+        self.running_loss = 0
         self.train_losses = []
         self.train_steps = []
         self.valid_losses = []
@@ -87,7 +88,7 @@ class TrainModel:
         """
         self.criterion = nn.NLLLoss()
         self.optimizer = torch.optim.Adam(self.model.classifier.parameters(), lr=self.lr)
-        console.print(f"[example][✓][/example] Optimizer and Criterion were successfully initialized")
+        console.print(f"[example][✓]False[/example] Optimizer and Criterion were successfully initialized")
         self.model.to(self.device)
         console.print(f"[example][✓][/example] Model was moved to the device")
 
@@ -96,7 +97,7 @@ class TrainModel:
         """
         Start the training process.
         """
-        console.print(f"[example][→][/example] Starting Model Training Loop...")
+        console.print(f"[example][→][/example] Starting Model Training Loop...\n")
         console.print(Panel.fit(
             START_MODEL_TRAIN_MESSAGE,
             title="Model Training Loop",
@@ -131,7 +132,6 @@ class TrainModel:
             )
             
             for epoch in range(self.args.epochs):
-                running_loss = 0
                 for images, labels in self.processed_data.dataloaders['train']:
               # Increment step
                   self.steps += 1
@@ -155,13 +155,65 @@ class TrainModel:
                   self.optimizer.step()
 
                   # Update loss counter
-                  running_loss += loss.item()
+                  self.running_loss += loss.item()
 
                   self.train_losses.append(loss.item())
                   self.train_steps.append(self.steps)
-                  
+
+                  self.training_validation(epoch)
+
                   # Update progress
                   progress.update(train_task, advance=1)
+
+    
+    def training_validation(self, epoch):
+        if self.steps % self.args.valid_interval == 0:
+            self.model.eval()
+
+            val_loss = 0
+            total_correct = 0
+            total_samples = 0 
+
+            with torch.no_grad():
+                for inputs, labels in self.processed_data.dataloaders['valid']:
+                    inputs, labels = inputs.to(self.device), labels.to(self.device)
+                    logps = self.model.forward(inputs)
+                    batch_loss = self.criterion(logps, labels)
+                    val_loss += batch_loss.item()
+                    
+                    # Calculate accuracy
+                    ps = torch.exp(logps)
+                    top_p, top_class = ps.topk(1, dim=1)
+                    equals = top_class == labels.view(*top_class.shape)
+
+                    # This approach calculates exact average since
+                    # it is not deppended if the examples are or not perfectly
+                    # divisible by batch size
+                    total_correct += equals.sum().item()
+                    total_samples += equals.shape[0]
+
+            # Calculate average losses and accuracy
+            avg_train_loss = self.running_loss/self.args.valid_interval
+            avg_val_loss = val_loss/len(self.processed_data.dataloaders['valid'])
+            avg_accuracy = total_correct / total_samples
+
+            # Track validation loss
+            self.valid_losses.append(avg_val_loss)
+            self.valid_steps.append(self.steps)
+            
+            # Print metrics
+            console.print(
+                f"\n[bold]Epoch[/bold] [yellow]{epoch+1}[/yellow]/[yellow]{self.args.epochs}[/yellow] | "
+                f"[bold]Step[/bold] [blue]{self.steps}[/blue] | "
+                f"[bold]Train loss[/bold] [red]{avg_train_loss:.3f}[/red] | "
+                f"[bold]Val loss[/bold] [green]{avg_val_loss:.3f}[/green] | "
+                f"[bold]Accuracy[/bold] [magenta]{avg_accuracy:.3f}[/magenta]"
+            )
+
+            # Reset running loss and return to training mode
+            self.running_loss = 0
+            self.model.train()
+
 
     def print_model_classifier(self, message=""):
         """
