@@ -62,7 +62,7 @@ class WelcomeMessage:
             default=f"{self._args.input_size}",
             style=style
         ).ask()
-        self._args.input_size = input_size
+        self._args.input_size = int(input_size)
 
         # Hidden units input
         hidden_units = questionary.text(
@@ -80,7 +80,7 @@ class WelcomeMessage:
             default=f"{self._args.output_size}",
             style=style
         ).ask()
-        self._args.output_size = output_size
+        self._args.output_size = int(output_size)
 
          # Learning rate input with better validation
         def validate_float(text):
@@ -106,7 +106,7 @@ class WelcomeMessage:
             default=f"{self._args.learning_rate}",
             style=style
         ).ask()
-        self._args.learning_rate = learning_rate
+        self._args.learning_rate = float(learning_rate)
 
         # Epochs input
         epochs = questionary.text(
@@ -115,7 +115,7 @@ class WelcomeMessage:
             default=f"{self._args.epochs}",
             style=style
         ).ask()
-        self._args.epochs = epochs
+        self._args.epochs = int(epochs)
 
         # GPU option
         gpu = questionary.confirm(

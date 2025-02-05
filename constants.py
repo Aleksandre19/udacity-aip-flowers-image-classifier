@@ -65,3 +65,12 @@ CURRENT_MODEL_ARCHITECTURE_MESSAGE = (
    "in the next step it will be modified according to the\n"
    "structure you specified in the hidden layers.\n\n"
 )
+
+
+START_MODEL_TRAIN_MESSAGE = (
+   "[info]Now it's time to train the model[/info]\n\n"
+   "[example]During training:[/example]\n"
+   "• [desc] You can track training process with progress bar [/desc]\n"
+   "• [desc] You will track train loss, validation loss and accuracy values[/desc]\n"
+   "• [desc] You will see plot of loss and accuracy [/desc]\n"
+)

@@ -1,29 +1,37 @@
 import sys
 import torch
 import torch.hub
-from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE
+from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE
 from torch import nn
 from torchvision import models
 from utils import console
 from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
 
 class TrainModel:
-    def __init__(self, args):
+    def __init__(self, args, processed_data):
         self.args = args
+        self.processed_data = processed_data
         self.lr = float(self.args.learning_rate)
         self.pre_train_message
         self.device = self.define_device()
         self.model = self.get_model(self.args.arch)
         self.optimizer = None
         self.criterion = None
+        self.steps = 0
+        self.train_losses = []
+        self.train_steps = []
+        self.valid_losses = []
+        self.valid_steps = []
 
     @staticmethod
-    def start(args):
-        train = TrainModel(args)
+    def start(args, processed_data):
+        train = TrainModel(args, processed_data)
         train.print_model_classifier(CURRENT_MODEL_ARCHITECTURE_MESSAGE)
         custom_classifier = CustomClassifier(args)
         train.replace_classifier(custom_classifier)
         train.initialize_optimizer_and_criterion()
+        train.train_model()
 
     @property
     def pre_train_message(self):
@@ -80,6 +88,80 @@ class TrainModel:
         self.criterion = nn.NLLLoss()
         self.optimizer = torch.optim.Adam(self.model.classifier.parameters(), lr=self.lr)
         console.print(f"[example][✓][/example] Optimizer and Criterion were successfully initialized")
+        self.model.to(self.device)
+        console.print(f"[example][✓][/example] Model was moved to the device")
+
+
+    def train_model(self):
+        """
+        Start the training process.
+        """
+        console.print(f"[example][→][/example] Starting Model Training Loop...")
+        console.print(Panel.fit(
+            START_MODEL_TRAIN_MESSAGE,
+            title="Model Training Loop",
+            border_style="title"
+        ))
+
+        input("Press Enter to start...\n")
+
+        self.train_loop()
+
+
+    def train_loop(self):
+        """
+        Implement the training loop.
+        """
+        # Calculate total number of batches for progress tracking
+        total_batches = len(self.processed_data.dataloaders['train'])
+        total_steps = int(total_batches * self.args.epochs)
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeRemainingColumn(),
+            transient=False
+        ) as progress:
+            # Add task for epoch tracking
+            train_task = progress.add_task(
+                f"[yellow]Training model...", 
+                total=total_steps
+            )
+            
+            for epoch in range(self.args.epochs):
+                running_loss = 0
+                for images, labels in self.processed_data.dataloaders['train']:
+              # Increment step
+                  self.steps += 1
+                  
+                  # Move images and labels to GPU
+                  images, labels = images.to(self.device), labels.to(self.device)
+
+                  # Clear gradients
+                  self.optimizer.zero_grad()
+
+                  # Grab logits
+                  logps = self.model(images)
+
+                  # Calculate loss
+                  loss = self.criterion(logps, labels)
+
+                  # Back propagate
+                  loss.backward()
+
+                  # Update weights
+                  self.optimizer.step()
+
+                  # Update loss counter
+                  running_loss += loss.item()
+
+                  self.train_losses.append(loss.item())
+                  self.train_steps.append(self.steps)
+                  
+                  # Update progress
+                  progress.update(train_task, advance=1)
 
     def print_model_classifier(self, message=""):
         """

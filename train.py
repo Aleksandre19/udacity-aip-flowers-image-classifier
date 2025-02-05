@@ -29,10 +29,10 @@ def main():
 
         # Transforming dataset and creating DataLoaders for 
         # train, validation and test datasets
-        PreprocessData.start(args.data_dir)
+        processed_data = PreprocessData.start(args.data_dir)
 
         # Start training
-        TrainModel.start(start_training.args)
+        TrainModel.start(start_training.args, processed_data)
 
     except Exception as e:
         log.error(f"An error occurred: {str(e)}")

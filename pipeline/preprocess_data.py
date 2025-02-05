@@ -23,7 +23,8 @@ class PreprocessData:
     def start(data_dir):
         preprocess_data = PreprocessData(data_dir)
         preprocess_data._preprocess_message
-        preprocess_data._preprocess_data
+        preprocess_data._preprocess_data  # Access the property to trigger data processing
+        return preprocess_data
 
     @property
     def _preprocess_data(self):
