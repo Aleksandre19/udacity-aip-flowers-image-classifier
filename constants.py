@@ -49,3 +49,13 @@ DATA_PREPROCESS_MESSAGE = (
     "• [desc] Transformations will be applied to images[/desc]\n"
     "• [desc] It will be loaded into DataLoaders[/desc]\n\n"
 )
+
+MODEL_TRAIN_MESSAGE = (
+   "[info]Your are about to train your model:[/info]\n\n"
+    "• [desc] Device will be set to [arg]gpu[/arg] if available.[/desc]\n"
+    "• [desc] Pre-trained VGG model will be loaded [/desc]\n"
+    "• [desc] Models all parameters will be frozen[/desc]\n"
+    "• [desc] New Classifier will be created by the specified architecture[/desc]\n"
+    "• [desc] Criterion, Optimizer, and Hyperparameters will be initialized[/desc]\n"
+    "• [desc] Finally model will be trained [/desc]\n"
+)

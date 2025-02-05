@@ -1,6 +1,6 @@
 import sys
 from utils import get_train_terminal_args, log
-from pipeline import WelcomeMessage, ProcessDataStructure, PreprocessData
+from pipeline import WelcomeMessage, ProcessDataStructure, PreprocessData, TrainModel
 from rich import console
 
 console = console.Console()
@@ -24,6 +24,9 @@ def main():
         # Transforming dataset and creating DataLoaders for 
         # train, validation and test datasets
         PreprocessData.start(args.data_dir)
+        
+        # Start training
+        TrainModel.start(args)
 
     except Exception as e:
         log.error(f"An error occurred: {str(e)}")
