@@ -133,10 +133,25 @@ def get_train_terminal_args():
                         default=0.0001,
                         help='learning rate for training')
 
+    parser.add_argument('--input_size', 
+                        type=int,
+                        default=25088,
+                        help='input size')
+
     parser.add_argument('--hidden_units', 
                         type=int,
                         default=[4096, 1024],
                         help='number of units in hidden layers')
+
+    parser.add_argument('--output_size', 
+                        type=int,
+                        default=102,
+                        help='output size')
+
+    parser.add_argument('--drop_p', 
+                        type=float,
+                        default=0.2,
+                        help='dropout probability')
 
     parser.add_argument('--epochs', 
                         type=int,

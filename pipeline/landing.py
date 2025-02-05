@@ -55,6 +55,15 @@ class WelcomeMessage:
         ).ask()
         self._args.arch = [a for a in arch.split() if len(a) > 0][0]
 
+        # Input size
+        input_size   = questionary.text(
+            f"Input Size: Number of input units (current: {self._args.input_size}):",
+            validate=lambda x: x.isdigit() if x else False,
+            default=f"{self._args.input_size}",
+            style=style
+        ).ask()
+        self._args.input_size = input_size
+
         # Hidden units input
         hidden_units = questionary.text(
             f"Hidden Units: Neurons in hidden layers (current: {','.join(map(str, self._args.hidden_units))}):",
@@ -64,7 +73,16 @@ class WelcomeMessage:
         ).ask()
         self._args.hidden_units = list(map(int, hidden_units.split(',')))
 
-        # Learning rate input with better validation
+        # Output size
+        output_size   = questionary.text(
+            f"Output Size: Number of output units (current: {self._args.output_size}):",
+            validate=lambda x: x.isdigit() if x else False,
+            default=f"{self._args.output_size}",
+            style=style
+        ).ask()
+        self._args.output_size = output_size
+
+         # Learning rate input with better validation
         def validate_float(text):
             if not text:  # Allow empty for default
                 return True
@@ -73,6 +91,14 @@ class WelcomeMessage:
                 return 0 < value <= 1
             except ValueError:
                 return False
+        
+        drop_p = questionary.text(
+            f"Dropout Probability: How much to drop out probability? (current: {self._args.drop_p}):",
+            validate=validate_float,
+            default=f"{self._args.drop_p}",
+            style=style
+        ).ask()
+        self._args.drop_p = drop_p
 
         learning_rate = questionary.text(
             f"Learning Rate: How fast model learns (current: {self._args.learning_rate}):",
@@ -85,7 +111,7 @@ class WelcomeMessage:
         # Epochs input
         epochs = questionary.text(
             f"Epochs: Training cycles (current: {self._args.epochs}):",
-            validate=lambda x: x.isdigit() and 0 < int(x) <= 100 if x else True,
+            validate=lambda x: x.isdigit() and 0 < int(x) <= 100 if x else False,
             default=f"{self._args.epochs}",
             style=style
         ).ask()
