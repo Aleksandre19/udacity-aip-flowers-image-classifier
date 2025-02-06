@@ -1,7 +1,7 @@
 import sys
 import torch
 import torch.hub
-from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE
+from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, TRAINING_COMPLETE_MESSAGE
 from torch import nn
 from torchvision import models
 from utils import console
@@ -24,6 +24,8 @@ class TrainModel:
         self.train_steps = []
         self.valid_losses = []
         self.valid_steps = []
+        self.progress = None
+        self.train_task = None
 
     @staticmethod
     def start(args, processed_data):
@@ -88,7 +90,7 @@ class TrainModel:
         """
         self.criterion = nn.NLLLoss()
         self.optimizer = torch.optim.Adam(self.model.classifier.parameters(), lr=self.lr)
-        console.print(f"[example][✓]False[/example] Optimizer and Criterion were successfully initialized")
+        console.print(f"[example][✓][/example] Optimizer and Criterion were successfully initialized")
         self.model.to(self.device)
         console.print(f"[example][✓][/example] Model was moved to the device")
 
@@ -125,8 +127,9 @@ class TrainModel:
             TimeRemainingColumn(),
             transient=False
         ) as progress:
-            # Add task for epoch tracking
-            train_task = progress.add_task(
+            # Store progress and task for validation
+            self.progress = progress
+            self.train_task = progress.add_task(
                 f"[yellow]Training model...", 
                 total=total_steps
             )
@@ -163,13 +166,17 @@ class TrainModel:
                   self.training_validation(epoch)
 
                   # Update progress
-                  progress.update(train_task, advance=1)
+                  self.progress.update(self.train_task, advance=1)
 
+        self.evaluation_model()
     
     def training_validation(self, epoch):
         if self.steps % self.args.valid_interval == 0:
+            # Update progress description to show validation is running
+            self.progress.update(self.train_task, description="[cyan]Running validation...[/cyan]")
+            
             self.model.eval()
-
+            
             val_loss = 0
             total_correct = 0
             total_samples = 0 
@@ -201,6 +208,9 @@ class TrainModel:
             self.valid_losses.append(avg_val_loss)
             self.valid_steps.append(self.steps)
             
+            # Reset progress description
+            self.progress.update(self.train_task, description=f"[yellow]Training model {epoch+1}/{self.args.epochs}")
+
             # Print metrics
             console.print(
                 f"\n[bold]Epoch[/bold] [yellow]{epoch+1}[/yellow]/[yellow]{self.args.epochs}[/yellow] | "
@@ -213,6 +223,83 @@ class TrainModel:
             # Reset running loss and return to training mode
             self.running_loss = 0
             self.model.train()
+
+    def evaluation_model(self):
+        console.print(f"[example][✓][/example] Model training was successfully completed")
+
+        # Switch off dropouts 
+        self.model.eval()   
+        
+        # Calculate total test batches
+        total_test_batches = len(self.processed_data.dataloaders['test'])
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeRemainingColumn(),
+            transient=False
+        ) as progress:
+            # Add task for evaluation tracking
+            eval_task = progress.add_task(
+                f"[yellow]Evaluating model...", 
+                total=total_test_batches
+            )
+
+            with torch.no_grad():
+                # accuracy = 0
+                test_loss = 0
+                total_correct = 0
+                total_samples = 0
+                
+                for images,labels in self.processed_data.dataloaders['test']:
+                    # Move to device
+                    images,labels = images.to(self.device), labels.to(self.device)
+
+                    # Model logits
+                    logps = self.model(images)
+
+                    # Negative Log Likelihood Loss
+                    loss = self.criterion(logps, labels)
+
+                    # Accumulate loss
+                    test_loss += loss.item()
+                    
+                    # Calculate probabilities
+                    ps = torch.exp(logps)
+
+                    # Grab top k probabilities
+                    top_p, top_class = ps.topk(1, dim=1)
+
+                    # Calculate predictions and labels matching
+                    equals = top_class == labels.view(*top_class.shape)
+
+                    # Accumulate total correct samples
+                    total_correct += equals.sum().item()
+
+                    # Track total samples for average calculation
+                    total_samples += equals.shape[0]
+
+                    # Update progress
+                    progress.update(eval_task, advance=1)
+
+            # Switch on dropouts
+            self.model.train()
+
+        # Print results after progress bar is complete
+        console.print(
+            f"\n[bold]Final Evaluation Results:[/bold]\n"
+            f"[bold]Model Accuracy:[/bold] [green]{total_correct / total_samples:.3f}[/green] | "
+            f"[bold]Model Confidence:[/bold] [blue]{1 - (test_loss / len(self.processed_data.dataloaders['test'])):.3f}[/blue]"
+        )
+
+    def training_complete(self):
+        console.print(Panel.fit(
+            TRAINING_COMPLETE_MESSAGE,
+            title="Training Completed",
+            border_style="title"
+        ))
 
 
     def print_model_classifier(self, message=""):
