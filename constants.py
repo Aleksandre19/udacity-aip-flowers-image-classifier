@@ -73,8 +73,3 @@ START_MODEL_TRAIN_MESSAGE = (
    "• [desc] You can track training process with progress bar [/desc]\n"
    "• [desc] You will track train loss, validation loss and accuracy values[/desc]\n"
 )
-
-TRAINING_COMPLETE_MESSAGE=(
-   "[info]Congratulations! Training completed successfully![/info]\n\n"
-   "[desc]Please choose one of the following options\nfrom the menu below to proceed further[/desc]\n"
-)

@@ -1,12 +1,14 @@
 import sys
 import torch
 import torch.hub
-from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, TRAINING_COMPLETE_MESSAGE
+from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE
 from torch import nn
 from torchvision import models
 from utils import console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
+import questionary
+
 
 class TrainModel:
     def __init__(self, args, processed_data):
@@ -168,7 +170,7 @@ class TrainModel:
                   # Update progress
                   self.progress.update(self.train_task, advance=1)
 
-        self.evaluation_model()
+        self.model_evaluation()
     
     def training_validation(self, epoch):
         if self.steps % self.args.valid_interval == 0:
@@ -224,7 +226,7 @@ class TrainModel:
             self.running_loss = 0
             self.model.train()
 
-    def evaluation_model(self):
+    def model_evaluation (self):
         console.print(f"[example][✓][/example] Model training was successfully completed")
 
         # Switch off dropouts 
@@ -287,19 +289,47 @@ class TrainModel:
             # Switch on dropouts
             self.model.train()
 
-        # Print results after progress bar is complete
-        console.print(
-            f"\n[bold]Final Evaluation Results:[/bold]\n"
-            f"[bold]Model Accuracy:[/bold] [green]{total_correct / total_samples:.3f}[/green] | "
-            f"[bold]Model Confidence:[/bold] [blue]{1 - (test_loss / len(self.processed_data.dataloaders['test'])):.3f}[/blue]"
-        )
+        
+        accuracy = total_correct / total_samples
+        confidence = 1 - (test_loss / len(self.processed_data.dataloaders['test']))
+        self.training_complete(accuracy, confidence)
 
-    def training_complete(self):
+    def training_complete(self, accuracy, confidence):
+        print("")
         console.print(Panel.fit(
-            TRAINING_COMPLETE_MESSAGE,
+            f"[info]Congratulations! Training completed successfully![/info]\n"
+            f"\n[example]Final Evaluation Results:[/example]\n"
+            f"Model Accuracy: [green]{accuracy:.3f}[/green] | "
+            f"Model Confidence: [blue]{confidence:.3f}[/blue]\n\n"
+            f"[desc]Please choose one of the following options\n"
+            f"from the menu below to proceed further[/desc]\n",
             title="Training Completed",
-            border_style="title"
+            border_style="green"
         ))
+
+        choice = questionary.select(
+            "Choose an option",
+            choices=[
+                "Save model",
+                "Retrain model",
+                "Exit"
+            ],
+            style=questionary.Style([
+                ('qmark', 'fg:yellow bold'),
+                ('question', 'bold'),
+                ('answer', 'fg:green bold'),
+                ('pointer', 'fg:yellow bold'),
+                ('highlighted', 'fg:yellow'),
+                ('selected', 'fg:green'),
+            ])
+        ).ask()
+
+        if choice == "Save model":
+            print("Saving model...")
+        elif choice == "Retrain model":
+            print("Retraining model...")
+        elif choice == "Exit":
+            sys.exit("Exiting...")
 
 
     def print_model_classifier(self, message=""):

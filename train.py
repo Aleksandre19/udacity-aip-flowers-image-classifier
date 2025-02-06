@@ -2,7 +2,7 @@ import sys
 from utils import get_train_terminal_args, log
 from pipeline import WelcomeMessage, ProcessDataStructure, PreprocessData, TrainModel
 from rich import console
-
+from rich.panel import Panel
 import plotext as plt
 
 
