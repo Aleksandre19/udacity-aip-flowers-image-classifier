@@ -78,6 +78,9 @@ class LoadModel:
       self.model.classifier = classifier
       
       self.model.class_to_idx = checkpoint['class_to_idx']
+
+      # Reverse class_to_index to idx_to_class
+      self.model.idx_to_class = {v:k for k,v in self.model.class_to_idx.items()}
       
       # Load the state dict
       self.model.load_state_dict(checkpoint['state_dict'])

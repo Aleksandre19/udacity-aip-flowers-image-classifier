@@ -3,10 +3,13 @@ import sys
 from pathlib import Path
 from tkinter import Tk, filedialog
 
+import json
+from pathlib import Path
 from constants import CHOOSE_IMAGE_ERROR_MESSAGE
 from rich.panel import Panel
-from utils import console, questionary_default_style
+from utils import console, questionary_default_style, define_device
 
+import torch
 import questionary
 from PIL import Image
 from torchvision import transforms
@@ -15,7 +18,10 @@ class MakePrediction:
     def __init__(self, model):
         self.model = model
         self.image = None
+        self.device = define_device()
         self.topk = 5
+        self.cat_to_name = None
+        
     
     @staticmethod
     def start(model):
@@ -26,6 +32,9 @@ class MakePrediction:
         self.choose_image()
         self.transform_image()
         self.choose_topk()
+        probs, classes = self.predict()
+        self.map_cat_to_name()
+        self.print_predictions(probs, classes)
 
     def choose_image(self):
         console.print(f"[example][→] Please select the image[/example]")
@@ -78,3 +87,54 @@ class MakePrediction:
         self.topk = int(topk)
 
         console.print(f"[example][✓][/example] Top K is selected:[arg]'{self.topk}'[/arg]")
+
+
+    def predict(self):
+        # Add batch dimension
+        self.image = self.image.unsqueeze(0).to(self.device)
+
+        # Switch off dropouts
+        self.model.eval()
+
+        # Freeze weights update 
+        with torch.no_grad():
+
+            # Model logits
+            logps = self.model(self.image)
+
+            # Calculate probabilities
+            ps = torch.exp(logps)
+
+            # Grab top k probabilities
+            top_p, top_class = ps.topk(self.topk, dim=1)
+          
+            # Convert and format         
+            probs = top_p[0].cpu().numpy()
+
+            # Map model predicted indices to class labels (folder names)
+            classes = [self.model.idx_to_class[c] for c in top_class[0].cpu().numpy()]
+
+            # Switch on dropouts
+            self.model.train()       
+            return probs, classes
+
+
+    def map_cat_to_name(self):
+       # Load category names
+        cat_to_name_path = Path(__file__).parent.parent / 'cat_to_name.json'
+        with open(cat_to_name_path, 'r') as f:
+            self.cat_to_name = json.load(f)
+
+
+    def print_predictions(self, probs, classes):
+        print()
+        console.print(f"[purple][↓][/purple] [purple]Predictions Result: [/purple]")
+        console.print(f"[example][✓][/example] [info]Top Prediction[/info] is" 
+                      f"[desc]`{self.cat_to_name[classes[0]]}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]")
+
+        console.print(f"[example][→][/example] [info]Classes: [/info][desc]{classes}[/desc]")
+        console.print(f"[example][→][/example] [info]Probabilities: [/info][desc]{probs}[/desc]")
+
+
+        # for prob, cls in zip(probs, classes):
+        #     console.print(f"[arg]'{self.cat_to_name[cls]}' : [arg]{prob:.4f}")
