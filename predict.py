@@ -1,7 +1,10 @@
-from pipeline import LoadModel
+from pipeline import LoadModel, MakePrediction
 
 def main():
-  model = LoadModel.start()
+  loaded_model = LoadModel()
+  
+  prediction = MakePrediction.start(loaded_model)
+
 
 if __name__ == '__main__':
   main()

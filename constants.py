@@ -84,3 +84,8 @@ CHOOSE_MODEL_ERROR_MESSAGE = (
    "• [desc] Run command: [info]`python3 predict.py --model 'model/folder/model_name.pth`[/info] [/desc]\n"
    "• [desc] Or you can run only: [info]`python3 predict.py`[/info] and choose a model from the file dialog window![/desc]\n"
 )
+
+CHOOSE_IMAGE_ERROR_MESSAGE = (
+   "[error][❌] The Image is required to make predictions [/error]\n\n"
+   "[example]Please press [info][Enter][/info] to choose an image[/example]\n"
+)

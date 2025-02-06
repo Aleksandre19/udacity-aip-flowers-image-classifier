@@ -6,7 +6,7 @@ from datetime import datetime
 from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE
 from torch import nn
 from torchvision import models
-from utils import console, questionary_default_style, CustomClassifier, print_model_classifier, get_model
+from utils import console, questionary_default_style, CustomClassifier, print_model_classifier, get_model, define_device
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
 import questionary
@@ -20,7 +20,7 @@ class TrainModel:
         self.processed_data = processed_data
         self.lr = float(self.args.learning_rate)
         self.pre_train_message
-        self.device = self.define_device()
+        self.device = define_device()
         self.model = get_model(self.args.arch)
         self.optimizer = None
         self.criterion = None
@@ -61,11 +61,6 @@ class TrainModel:
         input("Press Enter to start...\n")
 
         console.print(f"[example][→][/example] Starting Model Training...")
-
-    def define_device(self):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        console.print(f"[example][✓][/example] Set the device to:[arg]'{device}'[/arg]")
-        return device
 
     def replace_classifier(self, new_classifier, message=""):
         """

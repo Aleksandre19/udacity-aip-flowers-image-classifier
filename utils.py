@@ -5,6 +5,7 @@ import tarfile
 import urllib.request
 from pathlib import Path
 
+import torch
 from torch import nn
 from torchvision import models
 from rich.console import Console
@@ -390,3 +391,8 @@ def get_model(model_name):
 
         console.print(f"[example][✓][/example] The model [arg]'{model_name}'[/arg] was successfully loaded")
         return model
+
+def define_device():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    console.print(f"[example][✓][/example] Set the device to:[arg]'{device}'[/arg]")
+    return device
