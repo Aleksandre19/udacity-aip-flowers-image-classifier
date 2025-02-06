@@ -1,10 +1,12 @@
+import os
 import sys
 import torch
 import torch.hub
+from datetime import datetime
 from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE
 from torch import nn
 from torchvision import models
-from utils import console
+from utils import console, questionary_default_style
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
 import questionary
@@ -184,7 +186,7 @@ class TrainModel:
     
     def training_validation(self, epoch):
         if self.steps % self.args.valid_interval == 0:
-            # Update progress description to show validation is running
+            # Create validation task
             self.progress.update(self.train_task, description="[cyan]Running validation...[/cyan]")
             
             self.model.eval()
@@ -210,6 +212,9 @@ class TrainModel:
                     # divisible by batch size
                     total_correct += equals.sum().item()
                     total_samples += equals.shape[0]
+                    
+                    # # Update validation progress
+                    # self.progress.update(self.valid_task, advance=1)
 
             # Calculate average losses and accuracy
             avg_train_loss = self.running_loss/self.args.valid_interval
@@ -219,10 +224,10 @@ class TrainModel:
             # Track validation loss
             self.valid_losses.append(avg_val_loss)
             self.valid_steps.append(self.steps)
-            
+
             # Reset progress description
             self.progress.update(self.train_task, description=f"[yellow]Training model {epoch+1}/{self.args.epochs}")
-
+        
             # Print metrics
             console.print(
                 f"\n[bold]Epoch[/bold] [yellow]{epoch+1}[/yellow]/[yellow]{self.args.epochs}[/yellow] | "
@@ -231,10 +236,11 @@ class TrainModel:
                 f"[bold]Val loss[/bold] [green]{avg_val_loss:.3f}[/green] | "
                 f"[bold]Accuracy[/bold] [magenta]{avg_accuracy:.3f}[/magenta]"
             )
-
+            
             # Reset running loss and return to training mode
             self.running_loss = 0
             self.model.train()
+
 
     def model_evaluation (self):
         console.print(f"[example][✓][/example] Model training was successfully completed")
@@ -324,22 +330,70 @@ class TrainModel:
                 "Retrain model",
                 "Exit"
             ],
-            style=questionary.Style([
-                ('qmark', 'fg:yellow bold'),
-                ('question', 'bold'),
-                ('answer', 'fg:green bold'),
-                ('pointer', 'fg:yellow bold'),
-                ('highlighted', 'fg:yellow'),
-                ('selected', 'fg:green'),
-            ])
+            style=questionary_default_style()
         ).ask()
 
         if choice == "Save model":
-            print("Saving model...")
+            while True:
+                model_name = questionary.text(
+                    "Give a name to the saved model (without .pth):",
+                    default=f"checkpoint-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                    style=questionary_default_style()
+                    ).ask()
+
+                # If folder doesn't exists, create it
+                if not os.path.exists(self.args.save_dir):
+                    os.makedirs(self.args.save_dir)
+                
+                # Check if file already exists
+                file_path = os.path.join(self.args.save_dir, f"{model_name}.pth")
+
+                if os.path.exists(file_path):
+                    overwrite = questionary.confirm(
+                        f"Model '{model_name}' already exists. Do you want to overwrite it?",
+                        default=False
+                    ).ask()
+                    
+                    if overwrite:
+                        break  # User wants to overwrite, proceed with saving
+                    else:
+                        # User doesn't want to overwrite, restart loop to ask for a new name
+                        # This will keep asking until they either:
+                        # 1. Enter a name that doesn't exist
+                        # 2. Choose to overwrite an existing file
+                        continue
+                else:
+                    break  # File doesn't exist, proceed with saving
+
+            self.save_model(model_name, file_path)
         elif choice == "Retrain model":
             self.retrain_model()
         elif choice == "Exit":
             sys.exit("Exiting...")
+
+    def save_model(self, model_name, checkpoint_path):
+        """
+        This function saves a checkpoint
+        """
+
+        # Define structure of the checkpoint
+        checkpoint = {
+            'input': self.args.input_size,
+            'output': self.args.output_size,
+            'hidden_layers': self.args.hidden_units,
+            'learning_rate': self.lr,
+            'dropout': self.args.drop_p,
+            'epochs': self.args.epochs,
+            'batch_size': self.processed_data.dataloaders['train'].batch_size,
+            'activation': 'LogSoftmax',
+            'criterion': self.criterion,
+            'optimizer': self.optimizer,
+            'class_to_idx': self.processed_data.datasets['train'].class_to_idx,
+            'state_dict': self.model.state_dict()
+        }
+        
+        torch.save(checkpoint, checkpoint_path)
+        console.print(f"[example][✓][/example] The Model '{model_name}'  was successfully saved to '{checkpoint_path}'")
 
     def retrain_model(self):
         reconfigure = WelcomeMessage(retrain=True)

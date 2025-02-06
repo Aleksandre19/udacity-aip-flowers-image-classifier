@@ -64,6 +64,13 @@ class ProcessDataStructure:
                 sys.exit("Exiting...")
                 
             elif choice == "I have it":
+                # Check if directory exists and is not empty
+                if not os.path.exists(self.data_dir) or not os.listdir(self.data_dir):
+                    console.print(f"[error]The directory '{self.data_dir}' does not exist or is empty.[/error]\n"
+                                f"[example]Please press Enter to choose a download option.[/example]\n")
+                    input("Continue...")
+                    continue
+                
                 # Show dataset structure information
                 console.print("[example][→][/example] Validating dataset...")
                 break
