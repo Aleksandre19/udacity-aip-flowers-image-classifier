@@ -6,7 +6,7 @@ from datetime import datetime
 from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE
 from torch import nn
 from torchvision import models
-from utils import console, questionary_default_style
+from utils import console, questionary_default_style, CustomClassifier
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
 import questionary
@@ -447,34 +447,3 @@ class TrainModel:
 
         console.print("Press Enter to continue...")
         input("")
-
-
-class CustomClassifier(nn.Module):
-    def __init__(self, args):
-        super().__init__()
-        self.args = args
-        self.drop_p = float(self.args.drop_p)
-        self.input_size = int(self.args.input_size)
-        self.output_size = int(self.args.output_size)
-        # Initialize network layers
-        self.all_layers = nn.ModuleList()
-        
-        # Define input layer
-        self.all_layers.append(nn.Linear(self.input_size, self.args.hidden_units[0])) 
-        self.all_layers.append(nn.ReLU())
-        self.all_layers.append(nn.Dropout(p=self.drop_p))
-        
-        # Define hidden layers
-        for i in range(len(self.args.hidden_units) - 1):  # Note the -1 here
-            self.all_layers.append(nn.Linear(self.args.hidden_units[i], self.args.hidden_units[i + 1]))
-            self.all_layers.append(nn.ReLU())
-            self.all_layers.append(nn.Dropout(p=self.drop_p))
-            
-        # Define output layer
-        self.all_layers.append(nn.Linear(self.args.hidden_units[-1], self.output_size))
-        self.all_layers.append(nn.LogSoftmax(dim=1))
-        
-    def forward(self, x):
-        for layer in self.all_layers:
-            x = layer(x)
-        return x

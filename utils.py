@@ -5,6 +5,7 @@ import tarfile
 import urllib.request
 from pathlib import Path
 
+from torch import nn
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.panel import Panel
@@ -19,7 +20,7 @@ from rich.progress import (
 )
 from rich.theme import Theme
 import questionary
-from constants import PROVIDE_DATA_RICH_MESSAGE
+from constants import PROVIDE_DATA_RICH_MESSAGE, CHOOSE_MODEL_ERROR_MESSAGE
 
 
 def setup_logger():
@@ -170,6 +171,45 @@ def get_train_terminal_args():
     return parser.parse_args()
 
 
+class CustomPredictArgumentParser(argparse.ArgumentParser):
+    """
+    Custom ArgumentParser to override the default error message and format.
+    """
+    def error(self, message):
+        console.print(Panel.fit(
+            CHOOSE_MODEL_ERROR_MESSAGE,
+            title="Specify Model",
+            border_style="title"
+        ))
+        self.exit(2)  
+        
+
+def get_predict_terminal_args():
+    """
+    Define terminal arguments for prediction.
+    """
+
+    # Create parser first to handle info flag
+    parser = CustomPredictArgumentParser(
+        description='Predict images using a trained model',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        usage='example: python3 predict.py "data/directory"'
+    )
+
+    # Add info argument first to ensure it's checked before other arguments
+    parser.add_argument('--info',
+                    action=InfoAction,
+                    nargs=0,
+                    help='show detailed information about the script')
+
+    # Required argument
+    parser.add_argument('--model',
+                        type=str,
+                        help='path to the model directory')
+
+    return parser.parse_args()
+
+
 def download_dataset(url, tar_file, data_path):
     # Download dataset
     with Progress(
@@ -251,3 +291,33 @@ def questionary_default_style():
             ('highlighted', 'fg:yellow'),
             ('selected', 'fg:green')
         ])
+
+class CustomClassifier(nn.Module):
+    def __init__(self, args):
+        super().__init__()
+        self.args = args
+        self.drop_p = float(self.args.drop_p)
+        self.input_size = int(self.args.input_size)
+        self.output_size = int(self.args.output_size)
+        # Initialize network layers
+        self.all_layers = nn.ModuleList()
+        
+        # Define input layer
+        self.all_layers.append(nn.Linear(self.input_size, self.args.hidden_units[0])) 
+        self.all_layers.append(nn.ReLU())
+        self.all_layers.append(nn.Dropout(p=self.drop_p))
+        
+        # Define hidden layers
+        for i in range(len(self.args.hidden_units) - 1):  # Note the -1 here
+            self.all_layers.append(nn.Linear(self.args.hidden_units[i], self.args.hidden_units[i + 1]))
+            self.all_layers.append(nn.ReLU())
+            self.all_layers.append(nn.Dropout(p=self.drop_p))
+            
+        # Define output layer
+        self.all_layers.append(nn.Linear(self.args.hidden_units[-1], self.output_size))
+        self.all_layers.append(nn.LogSoftmax(dim=1))
+        
+    def forward(self, x):
+        for layer in self.all_layers:
+            x = layer(x)
+        return x
