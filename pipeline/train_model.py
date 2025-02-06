@@ -1,18 +1,20 @@
 import sys
 import torch
 import torch.hub
-from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE
+from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE
 from torch import nn
 from torchvision import models
 from utils import console
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
 import questionary
+from pipeline import WelcomeMessage
 
 
 class TrainModel:
-    def __init__(self, args, processed_data):
+    def __init__(self, args, processed_data, retrain=False):
         self.args = args
+        self.retrain = retrain
         self.processed_data = processed_data
         self.lr = float(self.args.learning_rate)
         self.pre_train_message
@@ -30,8 +32,8 @@ class TrainModel:
         self.train_task = None
 
     @staticmethod
-    def start(args, processed_data):
-        train = TrainModel(args, processed_data)
+    def start(args, processed_data, retrain=False):
+        train = TrainModel(args, processed_data, retrain)
         train.print_model_classifier(CURRENT_MODEL_ARCHITECTURE_MESSAGE)
         custom_classifier = CustomClassifier(args)
         train.replace_classifier(custom_classifier)
@@ -40,11 +42,19 @@ class TrainModel:
 
     @property
     def pre_train_message(self):
-        console.print(Panel.fit(
-            MODEL_TRAIN_MESSAGE,
-            title="Model Training",
-            border_style="title"
-        ))
+
+        if not self.retrain:
+            console.print(Panel.fit(
+                MODEL_TRAIN_MESSAGE,
+                title="Model Training",
+                border_style="title"
+            ))
+        else:
+            console.print(Panel.fit(
+                RETRAIN_MODEL_MESSAGE,
+                title="Model Retraining",
+                border_style="title"
+            ))
 
         input("Press Enter to start...\n")
 
@@ -327,11 +337,15 @@ class TrainModel:
         if choice == "Save model":
             print("Saving model...")
         elif choice == "Retrain model":
-            print("Retraining model...")
+            self.retrain_model()
         elif choice == "Exit":
             sys.exit("Exiting...")
 
-
+    def retrain_model(self):
+        reconfigure = WelcomeMessage(retrain=True)
+        TrainModel.start(reconfigure.args, self.processed_data, retrain=True)
+    
+    
     def print_model_classifier(self, message=""):
         """
         Print the current model classifier architecture with custom formatting.

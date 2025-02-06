@@ -10,10 +10,12 @@ class WelcomeMessage:
     """
     Welcome message with the training parameters menu for specifying the training parameters.
     """
-    def __init__(self):
+    def __init__(self, retrain=False):
+        self.retrain = retrain
         self._args = None
         self.display_welcome_message()
-        self.continue_to_data_directory_setup()
+        if not self.retrain: 
+            self.continue_to_data_directory_setup()
 
     def display_welcome_message(self):
         """Interactive menu for selecting training parameters."""
@@ -21,15 +23,15 @@ class WelcomeMessage:
         # Style for questionary
         style = questionary_default_style()
 
-        # Training parameters menu
-        console.print(Panel.fit(
-            "[info]Welcome to Flowers Image Classifier Training![/info]\n\n"
-            "[desc]You are about to start training a neural network to classify different types of flowers.\n"
-            "Please answer the following questions to specify the training parameters.[/desc]\n\n"
-            "[info]Press Enter to use default values[/info]",
-            title="Flowers Image Classifier",
-            border_style="title"
-        ))
+        if not self.retrain:
+            console.print(Panel.fit(
+                "[info]Welcome to Flowers Image Classifier Training![/info]\n\n"
+                "[desc]You are about to start training a neural network to classify different types of flowers.\n"
+                "Please answer the following questions to specify the training parameters.[/desc]\n\n"
+                "[info]Press Enter to use default values[/info]",
+                title="Flowers Image Classifier",
+                border_style="title"
+            ))
 
         self._args = get_train_terminal_args()
 

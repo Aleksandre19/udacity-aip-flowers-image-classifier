@@ -73,3 +73,7 @@ START_MODEL_TRAIN_MESSAGE = (
    "• [desc] You can track training process with progress bar [/desc]\n"
    "• [desc] You will track train loss, validation loss and accuracy values[/desc]\n"
 )
+
+RETRAIN_MODEL_MESSAGE = (
+   "[info]You are about to retrain the model[/info]\n"
+)
