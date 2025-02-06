@@ -1,4 +1,6 @@
+import os
 import sys
+import plotext as plt
 
 from pathlib import Path
 from tkinter import Tk, filedialog
@@ -18,6 +20,7 @@ class MakePrediction:
     def __init__(self, model):
         self.model = model
         self.image = None
+        self.image_path = None
         self.device = define_device()
         self.topk = 5
         self.cat_to_name = None
@@ -57,9 +60,10 @@ class MakePrediction:
             sys.exit("Exiting...")
         
         image_path = Path(image)
-        self.image = image_path.relative_to(Path.cwd())
+        self.image_path = image_path.relative_to(Path.cwd())
+        self.image = self.image_path
 
-        console.print(f"[example][✓][/example] Image is selected:[arg]'{self.image}'[/arg]")
+        console.print(f"[example][✓][/example] Image is selected:[arg]'{self.image_path}'[/arg]")
 
     def transform_image(self):
         # Load the image using PIL
@@ -133,8 +137,12 @@ class MakePrediction:
                       f"[desc]`{self.cat_to_name[classes[0]]}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]")
 
         console.print(f"[example][→][/example] [info]Classes: [/info][desc]{classes}[/desc]")
-        console.print(f"[example][→][/example] [info]Probabilities: [/info][desc]{probs}[/desc]")
-
-
-        # for prob, cls in zip(probs, classes):
-        #     console.print(f"[arg]'{self.cat_to_name[cls]}' : [arg]{prob:.4f}")
+        formatted_probs = [f"{p*100:.4f}%" for p in probs]
+        console.print(f"[example][→][/example] [info]Probabilities: [/info][desc]{formatted_probs}[/desc]")
+        
+        # Display the image in terminal
+        console.print("\n[purple][↓][/purple] [purple]Input Image:[/purple]")
+        from urllib.parse import quote
+        abs_path = Path(self.image_path).absolute()
+        file_url = f"file://{quote(str(abs_path))}"
+        console.print(f"[blue underline][link={file_url}]{self.image_path}[/link][/blue underline]")
