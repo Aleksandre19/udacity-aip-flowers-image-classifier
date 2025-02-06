@@ -6,6 +6,7 @@ import urllib.request
 from pathlib import Path
 
 from torch import nn
+from torchvision import models
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.panel import Panel
@@ -321,3 +322,71 @@ class CustomClassifier(nn.Module):
         for layer in self.all_layers:
             x = layer(x)
         return x
+
+
+def print_model_classifier(classifier, message=""):
+        """
+        Print the current model classifier architecture with custom formatting.
+        """
+        # Display model classifier architecture with custom formatting
+        classifier_str = str(classifier)
+        
+        # Parse and format the classifier string
+        lines = classifier_str.split('\n')
+        formatted_lines = []
+        
+        # Format the Sequential header
+        formatted_lines.append("[purple]Sequential([/purple]")
+        
+        # Process each layer
+        for line in lines[1:-1]:  # Skip first and last lines (Sequential( and ))
+            if not line.strip():
+                continue
+                
+            # Extract the layer number, type and parameters
+            parts = line.strip().split(':', 1)
+            if len(parts) == 2:
+                layer_num = parts[0].strip('() ')
+                layer_info = parts[1].strip()
+                
+                # Split layer type and parameters
+                layer_type = layer_info.split('(', 1)[0]
+                layer_params = '(' + layer_info.split('(', 1)[1] if '(' in layer_info else ''
+                
+                # Format with colors
+                formatted_line = f"  [example]({layer_num}):[/example] [green]{layer_type}[/green][info]{layer_params}[/info]"
+                formatted_lines.append(formatted_line)
+        
+        # Add closing bracket
+        formatted_lines.append("[purple])[/purple]")
+        
+        # Join all lines
+        formatted_str = message + '\n'.join(formatted_lines)
+        
+        # Print the formatted string with a title
+        console.print(Panel(
+            formatted_str, 
+            border_style="title"
+        ))
+
+        console.print("Press Enter to continue...")
+        input("")
+
+def get_model(model_name):
+        model_mapping = {
+            "vgg11": (models.vgg11, models.VGG11_Weights.DEFAULT),
+            "vgg13": (models.vgg13, models.VGG13_Weights.DEFAULT),
+            "vgg16": (models.vgg16, models.VGG16_Weights.DEFAULT),
+            "vgg19": (models.vgg19, models.VGG19_Weights.DEFAULT)
+        }
+        
+        if model_name not in model_mapping:
+            console.print(f"[error]Error:[/error] Unsupported model: [arg]{model_name}[/arg]")
+            console.print(f"[info]Available models:[/info] [desc]{', '.join(model_mapping.keys())}[/desc]")
+            sys.exit(1)
+        
+        model_func, weights = model_mapping[model_name]
+        model = model_func(weights=weights) 
+
+        console.print(f"[example][✓][/example] The model [arg]'{model_name}'[/arg] was successfully loaded")
+        return model

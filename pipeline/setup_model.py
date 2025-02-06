@@ -1,6 +1,8 @@
 import os
 import sys
-from utils import questionary_default_style, get_predict_terminal_args, console
+import torch
+from torchvision import models
+from utils import questionary_default_style, get_predict_terminal_args, console, CustomClassifier, print_model_classifier, get_model
 from tkinter import Tk, filedialog
 from pathlib import Path
 from rich.panel import Panel
@@ -9,7 +11,9 @@ from constants import CHOOSE_MODEL_ERROR_MESSAGE
 class SetupModel:
   def __init__(self):
     self.args = get_predict_terminal_args()
+    self.model = None
     self.setup_questionary()
+    self.load_model()
 
   def setup_questionary(self):
     style = questionary_default_style()
@@ -53,4 +57,34 @@ class SetupModel:
         ))
         sys.exit(1)
     
-    console.print(f"[example][✓][/example] The model file '{self.args.model}' was successfully loaded")
+  
+  def load_model(self):
+    try:
+      # Load the checkpoint (this is our own trusted checkpoint)
+      checkpoint = torch.load(self.args.model)
+      
+      # Get the base model architecture
+      self.model = get_model(checkpoint['arch'])
+      
+      # Update args with the loaded parameters
+      self.args.input_size = checkpoint['input']
+      self.args.output_size = checkpoint['output']
+      self.args.hidden_units = checkpoint['hidden_layers']
+      self.args.drop_p = checkpoint['dropout']
+      
+      # Create and set the custom classifier
+      classifier = CustomClassifier(self.args)
+      self.model.classifier = classifier
+      
+      # Load the state dict
+      self.model.load_state_dict(checkpoint['state_dict'])
+
+      print_model_classifier(self.model.classifier)
+      
+    except Exception as e:
+      console.print(f"[error][❌] Failed to load model: {str(e)}[/error]")
+      sys.exit(1)
+
+  @property
+  def classifier(self):
+    return self.model.classifier

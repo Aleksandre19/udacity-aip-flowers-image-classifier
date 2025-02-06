@@ -1,7 +1,7 @@
 from pipeline import LoadModel
 
 def main():
-  LoadModel.start()
+  model = LoadModel.start()
 
 if __name__ == '__main__':
   main()

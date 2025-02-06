@@ -6,7 +6,7 @@ from datetime import datetime
 from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE
 from torch import nn
 from torchvision import models
-from utils import console, questionary_default_style, CustomClassifier
+from utils import console, questionary_default_style, CustomClassifier, print_model_classifier, get_model
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
 import questionary
@@ -21,7 +21,7 @@ class TrainModel:
         self.lr = float(self.args.learning_rate)
         self.pre_train_message
         self.device = self.define_device()
-        self.model = self.get_model(self.args.arch)
+        self.model = get_model(self.args.arch)
         self.optimizer = None
         self.criterion = None
         self.steps = 0
@@ -36,7 +36,7 @@ class TrainModel:
     @staticmethod
     def start(args, processed_data, retrain=False):
         train = TrainModel(args, processed_data, retrain)
-        train.print_model_classifier(CURRENT_MODEL_ARCHITECTURE_MESSAGE)
+        print_model_classifier(train.model.classifier, CURRENT_MODEL_ARCHITECTURE_MESSAGE)
         custom_classifier = CustomClassifier(args)
         train.replace_classifier(custom_classifier)
         train.initialize_optimizer_and_criterion()
@@ -67,25 +67,6 @@ class TrainModel:
         console.print(f"[example][✓][/example] Set the device to:[arg]'{device}'[/arg]")
         return device
 
-    def get_model(self, model_name):
-        model_mapping = {
-            "vgg11": (models.vgg11, models.VGG11_Weights.DEFAULT),
-            "vgg13": (models.vgg13, models.VGG13_Weights.DEFAULT),
-            "vgg16": (models.vgg16, models.VGG16_Weights.DEFAULT),
-            "vgg19": (models.vgg19, models.VGG19_Weights.DEFAULT)
-        }
-        
-        if model_name not in model_mapping:
-            console.print(f"[error]Error:[/error] Unsupported model: [arg]{model_name}[/arg]")
-            console.print(f"[info]Available models:[/info] [desc]{', '.join(model_mapping.keys())}[/desc]")
-            sys.exit(1)
-        
-        model_func, weights = model_mapping[model_name]
-        model = model_func(weights=weights) 
-
-        console.print(f"[example][✓][/example] The model [arg]'{self.args.arch}'[/arg] was successfully loaded")
-        return model
-
     def replace_classifier(self, new_classifier, message=""):
         """
         Replace the current model classifier with the new one.
@@ -95,7 +76,7 @@ class TrainModel:
         console.print(f"[example][✓][/example] The model classifier was successfully replaced")
         
         message = "Next you will set up the Criterion, Optimizer and Hyperparameters\n\nArchitecture of new classifier.\n"
-        self.print_model_classifier(message)
+        print_model_classifier(self.model.classifier, message)
 
 
     def initialize_optimizer_and_criterion(self):
@@ -337,7 +318,7 @@ class TrainModel:
             while True:
                 model_name = questionary.text(
                     "Give a name to the saved model (without .pth):",
-                    default=f"checkpoint-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                    default=f"checkpoint_{self.args.arch}_{datetime.now().strftime('%Y%m%d%H%M%S')}",
                     style=questionary_default_style()
                     ).ask()
 
@@ -388,6 +369,7 @@ class TrainModel:
             'activation': 'LogSoftmax',
             'criterion': self.criterion,
             'optimizer': self.optimizer,
+            'arch': self.args.arch,
             'class_to_idx': self.processed_data.datasets['train'].class_to_idx,
             'state_dict': self.model.state_dict()
         }
@@ -399,51 +381,4 @@ class TrainModel:
         reconfigure = WelcomeMessage(retrain=True)
         TrainModel.start(reconfigure.args, self.processed_data, retrain=True)
     
-    
-    def print_model_classifier(self, message=""):
-        """
-        Print the current model classifier architecture with custom formatting.
-        """
-        # Display model classifier architecture with custom formatting
-        classifier_str = str(self.model.classifier)
-        
-        # Parse and format the classifier string
-        lines = classifier_str.split('\n')
-        formatted_lines = []
-        
-        # Format the Sequential header
-        formatted_lines.append("[purple]Sequential([/purple]")
-        
-        # Process each layer
-        for line in lines[1:-1]:  # Skip first and last lines (Sequential( and ))
-            if not line.strip():
-                continue
-                
-            # Extract the layer number, type and parameters
-            parts = line.strip().split(':', 1)
-            if len(parts) == 2:
-                layer_num = parts[0].strip('() ')
-                layer_info = parts[1].strip()
-                
-                # Split layer type and parameters
-                layer_type = layer_info.split('(', 1)[0]
-                layer_params = '(' + layer_info.split('(', 1)[1] if '(' in layer_info else ''
-                
-                # Format with colors
-                formatted_line = f"  [example]({layer_num}):[/example] [green]{layer_type}[/green][info]{layer_params}[/info]"
-                formatted_lines.append(formatted_line)
-        
-        # Add closing bracket
-        formatted_lines.append("[purple])[/purple]")
-        
-        # Join all lines
-        formatted_str = message + '\n'.join(formatted_lines)
-        
-        # Print the formatted string with a title
-        console.print(Panel(
-            formatted_str, 
-            border_style="title"
-        ))
 
-        console.print("Press Enter to continue...")
-        input("")
