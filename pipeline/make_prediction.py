@@ -38,6 +38,7 @@ class MakePrediction:
         probs, classes = self.predict()
         self.map_cat_to_name()
         self.print_predictions(probs, classes)
+        self.predict_again()
 
     def choose_image(self):
         console.print(f"[example][→] Please select the image[/example]")
@@ -145,4 +146,19 @@ class MakePrediction:
         from urllib.parse import quote
         abs_path = Path(self.image_path).absolute()
         file_url = f"file://{quote(str(abs_path))}"
-        console.print(f"[blue underline][link={file_url}]{self.image_path}[/link][/blue underline]")
+        console.print(f"[blue underline][link={file_url}]{self.image_path}[/link][/blue underline]\n")
+
+
+    def predict_again(self):
+        answer = questionary.confirm(
+            f"Would you like to make another prediction?",
+            style=questionary_default_style()
+            ).ask()
+
+        # If user wants to predict again, run the questionary
+        if answer:
+            self.predict_questionary()
+            return
+            
+        sys.exit("Welcome back...")
+        
