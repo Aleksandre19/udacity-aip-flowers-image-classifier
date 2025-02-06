@@ -77,3 +77,10 @@ START_MODEL_TRAIN_MESSAGE = (
 RETRAIN_MODEL_MESSAGE = (
    "[info]You are about to retrain the model[/info]\n"
 )
+
+CHOOSE_MODEL_ERROR_MESSAGE = (
+   "[error][❌] The Model is required to continue[/error]\n\n"
+   "[example]You can specify the model with the following options:[/example]\n"
+   "• [desc] Run command: [info]`python3 predict.py --model 'model/folder/model_name.pth`[/info] [/desc]\n"
+   "• [desc] Or you can run only: [info]`python3 predict.py`[/info] and choose a model from the file dialog window![/desc]\n"
+)
