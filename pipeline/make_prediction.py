@@ -151,12 +151,15 @@ class MakePrediction:
     def print_predictions(self, probs, classes):
         print()
         console.print(f"[purple][↓][/purple] [purple]Predictions Result: [/purple]")
-        console.print(f"[example][✓][/example] [info]Top Prediction[/info] is" 
-                      f"[desc]`{self.cat_to_name[classes[0]]}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]")
+        console.print(f"[example][→][/example] [info]Top Prediction[/info] is" 
+                      f"[desc]`{self.cat_to_name[classes[0]]}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]\n")
 
-        console.print(f"[example][→][/example] [info]Classes: [/info][desc]{classes}[/desc]")
-        formatted_probs = [f"{p:.4f}" for p in probs]
-        console.print(f"[example][→][/example] [info]Probabilities: [/info][desc]{formatted_probs}[/desc]")
+        console.print(f"[purple][↓][/purple] [purple]Probability Distribution: [/purple]")
+        for p, c in zip(probs, classes):
+            console.print(
+                f"[example][→][/example] [info]Flower:[/info] [desc]{self.cat_to_name[c]:25}[/desc] | " 
+                f"[info]Category:[/info] [desc]{c:3}[/desc] | " 
+                f"[info]Probability:[/info] [arg]{p:.4f}[/arg]")
         
         # Display the image in terminal
         console.print("\n[purple][↓][/purple] [purple]Input Image:[/purple]")
