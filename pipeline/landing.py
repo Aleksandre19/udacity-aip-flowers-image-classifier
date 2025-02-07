@@ -1,16 +1,31 @@
-from ast import arg
+# Standard library imports
 import sys
-import os
-import turtle
-from utils import log, console, questionary_default_style, get_train_terminal_args
-from rich.panel import Panel
+
+# Third-party imports
 import questionary
+from rich.panel import Panel
+
+# Local imports
+from utils import (
+    console,
+    get_train_terminal_args,
+    questionary_default_style
+)
 
 class WelcomeMessage:
-    """
-    Welcome message with the training parameters menu for specifying the training parameters.
+    """Handles the welcome interface and training parameter configuration.
+    
+    This class manages the initial setup process for the flower classifier,
+    including parameter configuration through an interactive menu and
+    data directory setup.
     """
     def __init__(self, retrain=False):
+        """Initialize the WelcomeMessage class.
+        
+        Args:
+            retrain (bool): If True, indicates this is a retraining session
+                           and skips data directory setup.
+        """
         self.retrain = retrain
         self._args = None
         self.display_welcome_message()
@@ -18,7 +33,17 @@ class WelcomeMessage:
             self.continue_to_data_directory_setup()
 
     def display_welcome_message(self):
-        """Interactive menu for selecting training parameters."""
+        """Display interactive menu for configuring training parameters.
+        
+        Presents a series of prompts for the user to configure:
+        - Save directory for model checkpoints
+        - Model architecture selection
+        - Network architecture parameters (input, hidden, output sizes)
+        - Training parameters (dropout, learning rate, epochs)
+        - Hardware acceleration options (GPU)
+        
+        All inputs have default values that can be accepted by pressing Enter.
+        """
     
         # Style for questionary
         style = questionary_default_style()
@@ -140,11 +165,24 @@ class WelcomeMessage:
 
     @property
     def args(self):
+        """Get the configured training arguments.
+        
+        Returns:
+            argparse.Namespace: Object containing all training parameters
+        """
         return self._args
 
 
 
     def continue_to_data_directory_setup(self):
+        """Prompt for data directory setup continuation.
+        
+        Displays a prompt asking if the user wants to proceed with
+        dataset directory setup. Exits the program if user declines.
+        
+        Returns:
+            bool: True if user wants to continue, exits otherwise
+        """
         # Continue with dataset direcotry setup
         console.print(Panel.fit(
             "[desc]The following steps will setup the dataset directory.[/desc]\n"

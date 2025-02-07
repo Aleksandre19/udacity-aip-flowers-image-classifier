@@ -1,40 +1,81 @@
 import os
 import sys
-import torch
-import torch.hub
 from datetime import datetime
-from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE, CONTINUE_WITH_PREDICTION_MESSAGE
-from torch import nn
-from torchvision import models
-from utils import console, questionary_default_style, CustomClassifier, print_model_classifier, get_model, define_device
+
+
+from constants import (
+    CONTINUE_WITH_PREDICTION_MESSAGE,
+    CURRENT_MODEL_ARCHITECTURE_MESSAGE,
+    MODEL_TRAIN_MESSAGE,
+    RETRAIN_MODEL_MESSAGE,
+    START_MODEL_TRAIN_MESSAGE
+)
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeRemainingColumn
+)
 import questionary
+
+import torch
+from torch import nn
+from utils import (
+    CustomClassifier,
+    console,
+    define_device,
+    get_model,
+    print_model_classifier,
+    questionary_default_style
+)
+
 from pipeline import WelcomeMessage
 
 
 class TrainModel:
+    """Handles the training process for a deep learning model on the flowers dataset.
+    
+    This class manages the complete training pipeline including model setup,
+    training loop execution, validation, evaluation, and model saving.
+    """
+    
     def __init__(self, args, processed_data, retrain=False):
-        self.args = args
-        self.retrain = retrain
-        self.processed_data = processed_data
-        self.lr = float(self.args.learning_rate)
-        self.pre_train_message
-        self.device = define_device(self.args.gpu)
-        self.model = get_model(self.args.arch)
-        self.optimizer = None
-        self.criterion = None
-        self.steps = 0
-        self.running_loss = 0
-        self.train_losses = []
-        self.train_steps = []
-        self.valid_losses = []
-        self.valid_steps = []
-        self.progress = None
-        self.train_task = None
+        """Initialize the TrainModel class.
+        
+        Args:
+            args: argparse object containing training parameters
+            processed_data: DataLoader object containing training, validation and test data
+            retrain: Boolean indicating if this is a retraining session
+        """
+        self.args = args  # Command line arguments
+        self.retrain = retrain  # Flag for retraining mode
+        self.processed_data = processed_data  # Dataset loaders
+        self.lr = float(self.args.learning_rate)  # Learning rate
+        self.pre_train_message  # Display pre-training message
+        self.device = define_device(self.args.gpu)  # CPU/GPU device
+        self.model = get_model(self.args.arch)  # Load pretrained model
+        self.optimizer = None  # Will be set in initialize_optimizer_and_criterion
+        self.criterion = None  # Will be set in initialize_optimizer_and_criterion
+        self.steps = 0  # Training step counter
+        self.running_loss = 0  # Accumulator for running loss
+        self.train_losses = []  # Track training losses
+        self.train_steps = []  # Track training steps
+        self.valid_losses = []  # Track validation losses
+        self.valid_steps = []  # Track validation steps
+        self.progress = None  # Progress bar instance
+        self.train_task = None  # Training progress task
 
     @staticmethod
     def start(args, processed_data, retrain=False):
+        """Entry point for model training process.
+        
+        Args:
+            args: argparse object containing training parameters
+            processed_data: DataLoader object containing training data
+            retrain: Boolean indicating if this is a retraining session
+        """
         train = TrainModel(args, processed_data, retrain)
         print_model_classifier(train.model.classifier, CURRENT_MODEL_ARCHITECTURE_MESSAGE)
         custom_classifier = CustomClassifier(args)
@@ -45,6 +86,11 @@ class TrainModel:
 
     @property
     def pre_train_message(self):
+        """Display appropriate pre-training message based on training mode.
+        
+        Shows different messages for initial training vs retraining.
+        Waits for user confirmation before proceeding.
+        """
 
         if not self.retrain:
             console.print(Panel.fit(
@@ -167,6 +213,14 @@ class TrainModel:
         self.model_evaluation()
     
     def training_validation(self, epoch):
+        """Perform validation during training.
+        
+        Args:
+            epoch: Current training epoch
+            
+        Validates model performance on validation dataset and prints metrics
+        including validation loss and accuracy.
+        """
         if self.steps % self.args.valid_interval == 0:
             # Create validation task
             self.progress.update(self.train_task, description="[cyan]Running validation...[/cyan]")
@@ -224,7 +278,12 @@ class TrainModel:
             self.model.train()
 
 
-    def model_evaluation (self):
+    def model_evaluation(self):
+        """Evaluate model performance on test dataset.
+        
+        Performs a final evaluation of the trained model on the test dataset,
+        calculating accuracy and confidence metrics.
+        """
         console.print(f"[example][✓][/example] Model training was successfully completed")
 
         # Switch off dropouts 
@@ -293,6 +352,15 @@ class TrainModel:
         self.training_complete(accuracy, confidence)
 
     def training_complete(self, accuracy, confidence):
+        """Handle completion of training process.
+        
+        Args:
+            accuracy: Final model accuracy on test set
+            confidence: Model confidence score
+            
+        Displays final results and provides options to save model,
+        retrain, or exit.
+        """
         print("")
         console.print(Panel.fit(
             f"[info]Congratulations! Training completed successfully![/info]\n"
@@ -383,6 +451,11 @@ class TrainModel:
         TrainModel.start(reconfigure.args, self.processed_data, retrain=True)
 
     def continue_with_prediction(self):
+        """Prompt user for next steps after training.
+        
+        Provides options to either proceed with making predictions
+        or handle predictions manually.
+        """
         console.print(Panel.fit(
             CONTINUE_WITH_PREDICTION_MESSAGE,
             title="Continue with Prediction?",

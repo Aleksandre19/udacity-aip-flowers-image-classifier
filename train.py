@@ -1,11 +1,46 @@
+"""Main training script for the flower image classifier.
+
+This script orchestrates the complete training workflow including:
+- Parameter configuration through command line or interactive menu
+- Dataset validation and preprocessing
+- Model training and evaluation
+- Checkpoint saving
+
+The script can be run with command line arguments or in interactive mode.
+Use --info flag to see available command line options.
+"""
+
+# Standard library imports
 import sys
-from utils import get_train_terminal_args, log
-from pipeline import WelcomeMessage, ProcessDataStructure, PreprocessData, TrainModel
+
+# Third-party imports
 from rich import console
 
+# Local imports
+from pipeline import (
+    ProcessDataStructure,
+    PreprocessData,
+    TrainModel,
+    WelcomeMessage
+)
+from utils import get_train_terminal_args, log
+
+# Initialize rich console
 console = console.Console()
 
 def main():
+    """Execute the main training workflow.
+    
+    The workflow consists of the following steps:
+    1. Parse command line arguments
+    2. Display welcome message and get training parameters
+    3. Validate dataset structure
+    4. Preprocess data and create DataLoaders
+    5. Train the model
+    
+    Raises:
+        Exception: Any unexpected errors during training
+    """
     try:
         # Parse command line args to check for --info
         args = get_train_terminal_args()

@@ -1,29 +1,54 @@
+# Standard library imports
 import os
 import sys
-import torch
-from torchvision import models
-from utils import (
-  questionary_default_style, 
-  get_predict_terminal_args, 
-  console, 
-  CustomClassifier, 
-  print_model_classifier, 
-  get_model, 
-  select_file
-)
-from tkinter import Tk, filedialog
 from pathlib import Path
+
+# Third-party imports
+import torch
 from rich.panel import Panel
+from tkinter import Tk, filedialog
+from torchvision import models
+
+# Local imports
 from constants import CHOOSE_MODEL_ERROR_MESSAGE
+from utils import (
+    console,
+    CustomClassifier,
+    get_model,
+    get_predict_terminal_args,
+    print_model_classifier,
+    questionary_default_style,
+    select_file
+)
 
 class LoadModel:
+  """Handles model loading and initialization for the flower classifier.
+  
+  This class manages the complete model loading workflow including:
+  - Loading saved model checkpoints
+  - Reconstructing model architecture
+  - Setting up custom classifier layers
+  - Restoring model state and class mappings
+  """
+  
   def __init__(self):
-    self.args = get_predict_terminal_args()
-    self.model = None
-    self.setup_questionary()
-    self.load_model()
+    """Initialize the LoadModel class.
+    
+    Sets up command line arguments, prompts for model selection,
+    and loads the specified model checkpoint.
+    """
+    self.args = get_predict_terminal_args()  # Get command line arguments
+    self.model = None  # Will store the loaded model
+    self.setup_questionary()  # Prompt for model selection
+    self.load_model()  # Load and initialize the model
 
   def setup_questionary(self):
+    """Handle model file selection and validation.
+    
+    Provides a file dialog for model selection if not specified via command line.
+    Validates the model file path and converts to relative path if possible.
+    Exits with appropriate error messages if model selection fails.
+    """
     style = questionary_default_style()
     
     if not self.args.model:
@@ -64,6 +89,17 @@ class LoadModel:
     
   
   def load_model(self):
+    """Load and initialize the model from a checkpoint file.
+    
+    Performs the following steps:
+    1. Loads the model checkpoint
+    2. Reconstructs the model architecture
+    3. Updates model parameters from checkpoint
+    4. Creates and sets up the custom classifier
+    5. Restores class index mappings
+    
+    Exits with error message if loading fails.
+    """
     try:
       # Load the checkpoint (this is our own trusted checkpoint)
       checkpoint = torch.load(self.args.model)

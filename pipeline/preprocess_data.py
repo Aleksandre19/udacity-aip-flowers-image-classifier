@@ -1,19 +1,32 @@
+# Standard library imports
 import os
 
+# Third-party imports
+import torch
+from rich.panel import Panel
+from torchvision import datasets, transforms
+
+# Local imports
 from constants import DATA_PREPROCESS_MESSAGE
 from utils import console
-from rich.panel import Panel
-
-import torch
-from torchvision import datasets, transforms
 
 
 class PreprocessData:
-    """Class to preprocess data before training.
-    It applies transformations to images and
-    then loads them into DataLoaders."""
+    """Handles data preprocessing for the flower classifier training pipeline.
+    
+    This class manages the complete data preprocessing workflow including:
+    - Applying appropriate transformations for train/test/validation sets
+    - Loading and organizing image data using PyTorch DataLoaders
+    - Implementing data augmentation for training set
+    - Normalizing images for model compatibility
+    """
 
     def __init__(self, data_dir):
+        """Initialize the PreprocessData class.
+        
+        Args:
+            data_dir (str): Path to the root directory containing train/test/valid subdirectories
+        """
         self.data_dir = data_dir
         self.data_transforms = None
         self.datasets = None
@@ -21,6 +34,14 @@ class PreprocessData:
 
     @staticmethod
     def start(data_dir):
+        """Create and initialize a PreprocessData instance.
+        
+        Args:
+            data_dir (str): Path to the data directory
+            
+        Returns:
+            PreprocessData: Initialized instance with processed datasets
+        """
         preprocess_data = PreprocessData(data_dir)
         preprocess_data._preprocess_message
         preprocess_data._preprocess_data  # Access the property to trigger data processing
@@ -28,6 +49,16 @@ class PreprocessData:
 
     @property
     def _preprocess_data(self):
+        """Process and prepare datasets for training.
+        
+        Performs the following steps:
+        1. Sets up data transformations for each dataset split
+        2. Creates dataset objects with appropriate transformations
+        3. Initializes data loaders with batching and memory pinning
+        
+        The training set includes data augmentation (rotation, crop, flip),
+        while test/validation sets only include resizing and normalization.
+        """
         console.print(f"[example][→][/example] Starting dataset preprocessing...")
 
         train_dir = os.path.join(self.data_dir, "train")
@@ -75,6 +106,11 @@ class PreprocessData:
 
     @property
     def _preprocess_message(self):
+        """Display preprocessing status message.
+        
+        Shows a panel with preprocessing information and waits for user confirmation
+        before proceeding.
+        """
         console.print(Panel.fit(
             DATA_PREPROCESS_MESSAGE,
             title="Data Preprocessing",

@@ -1,43 +1,59 @@
-import os
-import select
 import sys
-import plotext as plt
-
-from pathlib import Path
-from tkinter import Tk, filedialog
 
 import json
+import questionary
+import torch
+from PIL import Image
 from pathlib import Path
+
+
 from constants import CHOOSE_IMAGE_ERROR_MESSAGE
 from rich.panel import Panel
+from torchvision import transforms
 from utils import (
     console, 
-    questionary_default_style, 
     define_device, 
+    questionary_default_style, 
     select_file
 )
 
-import torch
-import questionary
-from PIL import Image
-from torchvision import transforms
-
 class MakePrediction:
+    """A class for making flower predictions using a trained deep learning model.
+    
+    This class handles the complete prediction pipeline including image selection,
+    transformation, and model inference.
+    """
+    
     def __init__(self, model):
-        self.model = model
-        self.image = None
-        self.image_path = None
-        self.device = None
-        self.topk = 5
-        self.cat_to_name = None
+        """Initialize the MakePrediction class.
+        
+        Args:
+            model: The trained PyTorch model for making predictions
+        """
+        self.model = model  # Store the trained model
+        self.image = None  # Will store the transformed image tensor
+        self.image_path = None  # Path to the input image
+        self.device = None  # CPU/GPU device for computation
+        self.topk = 5  # Number of top predictions to return
+        self.cat_to_name = None  # Dictionary mapping categories to flower names
         
     
     @staticmethod
     def start(model):
+        """Static method to create and start the prediction process.
+        
+        Args:
+            model: The trained model to use for predictions
+        """
         prediction = MakePrediction(model)
         prediction.predict_questionary()
 
     def predict_questionary(self):
+        """Main method that orchestrates the prediction workflow.
+        
+        Handles the complete prediction pipeline including image selection,
+        transformation, model inference, and result display.
+        """
         self.choose_image()
         if not self.cat_to_name:
             self.select_cat_to_name()
@@ -48,6 +64,11 @@ class MakePrediction:
         self.predict_again()
     
     def choose_image(self):
+        """Prompt user to select an image file for prediction.
+        
+        Opens a file dialog for image selection and validates the choice.
+        Exits if no image is selected.
+        """
         console.print(f"[example][→] Please select the image[/example]")
         image = select_file(
             title="Choose the image to make predictions with",
@@ -71,6 +92,11 @@ class MakePrediction:
         console.print(f"[example][✓][/example] Image is selected:[arg]'{self.image_path}'[/arg]")
 
     def select_cat_to_name(self):
+        """Prompt user to select a JSON file containing category to name mappings.
+        
+        Opens a file dialog for JSON selection and loads the mapping.
+        Exits if no file is selected.
+        """
         console.print(f"[example][→] Please select the category-to-name mapping file from the file dialog (*.json)[/example]")
         cat_to_name = select_file(
             title="Choose the category mapping to names (*.json):",
@@ -86,6 +112,11 @@ class MakePrediction:
         console.print(f"[example][✓][/example] Category-to-name mapping was selected successfully")
 
     def transform_image(self):
+        """Transform the input image for model inference.
+        
+        Applies a series of transformations including resize, crop, and normalization
+        to prepare the image for the model.
+        """
         # Load the image using PIL
         with Image.open(self.image) as pil_image:
             transform = transforms.Compose([
@@ -102,6 +133,12 @@ class MakePrediction:
         console.print(f"[example][✓][/example] The image was transformed successfully")
     
     def preidct_questionary(self):
+        """Prompt user for prediction parameters.
+        
+        Gets user input for:
+        - Number of top predictions to display (topk)
+        - Whether to use GPU acceleration
+        """
         topk   = questionary.text(
             f"Top K: Number of top predictions to display (current: {self.topk}):",
             validate=lambda x: x.isdigit() if x else False,
@@ -124,6 +161,11 @@ class MakePrediction:
 
 
     def predict(self):
+        """Perform model inference on the transformed image.
+        
+        Returns:
+            tuple: (probabilities, class_indices) for top k predictions
+        """
         # Move model to the device
         self.model.to(self.device)
         
@@ -161,12 +203,26 @@ class MakePrediction:
             return probs, classes
     
     def _select_cat_name(self, class_index):
+        """Get the flower name for a given class index.
+        
+        Args:
+            class_index: The class index to look up
+            
+        Returns:
+            str or None: The flower name if found, None otherwise
+        """
         cat_name = self.cat_to_name.get(class_index, None)
         if not cat_name:
             cat_name = None
         return cat_name
 
     def print_predictions(self, probs, classes):
+        """Display prediction results in a formatted way.
+        
+        Args:
+            probs: List of prediction probabilities
+            classes: List of predicted class indices
+        """
         print()
         cat_name = self._select_cat_name(classes[0])
             
@@ -176,7 +232,7 @@ class MakePrediction:
             console.print(f"[example][→][/example] [info]Top Prediction[/info] is" 
                           f"[desc]`{cat_name}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]\n")
         else:
-            console.print(f"[error][❌] No name found for the predicted class {test_cat}."
+            console.print(f"[error][❌] No name found for the predicted class {classes[0]}."
                           f" Please check the category-to-name mapping file. [/error]\n")
                           
         console.print(f"[purple][↓][/purple] [purple]Probability Distribution: [/purple]")
@@ -187,7 +243,7 @@ class MakePrediction:
             if not cat_name:
                 print_message = f"[error][❌] No name found for the predicted class {c}. Please check the category-to-name mapping file. [/error]"
             else:
-                print_message = (f"[example][→][/example] [info]Flower:[/info] [desc]{c:25}[/desc] | "
+                print_message = (f"[example][→][/example] [info]Flower:[/info] [desc]{cat_name:25}[/desc] | "
                                 f"[info]Category:[/info] [desc]{c:3}[/desc] | "
                                 f"[info]Probability:[/info] [arg]{p:.4f}[/arg]")
                 
@@ -202,6 +258,11 @@ class MakePrediction:
 
 
     def predict_again(self):
+        """Prompt user if they want to make another prediction.
+        
+        Returns:
+            bool: True if user wants to predict again, False otherwise
+        """
         answer = questionary.confirm(
             f"Would you like to make another prediction?",
             style=questionary_default_style()

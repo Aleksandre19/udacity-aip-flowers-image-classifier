@@ -1,13 +1,13 @@
+# Standard library imports
 import os
+import subprocess
 import sys
 from pathlib import Path
-import subprocess
 from time import sleep
 
+# Third-party imports
+from rich.live import Live
 from rich.panel import Panel
-from constants import DATA_STRUCTURE_MESSAGE, DATASET_URL, PROVIDE_DATA_RICH_MESSAGE
-from utils import log, console, download_dataset, start_data_process_questionary
-
 from rich.progress import (
     BarColumn,
     DownloadColumn,
@@ -17,17 +17,47 @@ from rich.progress import (
     TimeRemainingColumn,
     TransferSpeedColumn,
 )
-from rich.live import Live
+
+# Local imports
+from constants import (
+    DATA_STRUCTURE_MESSAGE,
+    DATASET_URL,
+    PROVIDE_DATA_RICH_MESSAGE
+)
+from utils import (
+    console,
+    download_dataset,
+    log,
+    start_data_process_questionary
+)
 
 class ProcessDataStructure:
-    """
-    Class to process data before training.
+    """Handles dataset validation and preparation for the flower classifier.
+    
+    This class manages the complete dataset processing workflow including:
+    - Creating and validating data directory structure
+    - Downloading sample dataset if needed
+    - Validating dataset organization (train/valid/test splits)
+    - Checking image files and category naming conventions
     """
     def __init__(self, data_dir):
+        """Initialize the ProcessDataStructure class.
+        
+        Args:
+            data_dir (str): Path to the root directory for dataset storage
+        """
         self.data_dir = data_dir
 
     @staticmethod
     def start(data_dir):
+        """Begin the dataset processing workflow.
+        
+        Args:
+            data_dir (str): Path to the data directory
+            
+        Creates an instance and runs the complete validation process
+        including directory creation and structure verification.
+        """
         console.print(f"[example][→][/example] Starting dataset validation for [arg]'{data_dir}'[/arg]")
         process_data = ProcessDataStructure(data_dir)
         process_data._create_data_directory
@@ -37,7 +67,12 @@ class ProcessDataStructure:
     
     @property
     def _create_data_directory(self):
-        """Handle data directory creation if it doesn't exist."""
+        """Create the data directory if it doesn't exist.
+        
+        Creates the specified directory path if it's not present,
+        otherwise uses the existing directory. Provides feedback
+        about the directory status.
+        """
         if not os.path.exists(self.data_dir):
             os.makedirs(self.data_dir)
             console.print(f"[example][✓][/example] Created data directory:[arg]'{self.data_dir}'[/arg]")
@@ -46,7 +81,15 @@ class ProcessDataStructure:
 
     @property
     def _handle_data_directory(self):
-        """Handle data directory creation if it doesn't exist."""
+        """Manage data directory content and setup.
+        
+        Provides options to:
+        1. Use existing dataset if present
+        2. Download sample dataset
+        3. Exit the process
+        
+        Handles various error cases and provides appropriate feedback.
+        """
 
         # If directory exists and is not empty, return
         if not os.path.exists(self.data_dir):
@@ -96,7 +139,17 @@ class ProcessDataStructure:
 
     @property
     def _check_dataset_structure(self):
-        """Check if the data directory has the expected structure including category folders."""
+        """Validate the complete dataset structure.
+        
+        Performs a series of validation steps:
+        1. Verifies existence of train/valid/test directories
+        2. Checks for category subdirectories
+        3. Validates category naming convention (numeric)
+        4. Verifies image files (jpg format)
+        
+        Returns:
+            bool: True if validation passes, False otherwise
+        """
         # Step 1: Check main directories exist
         def check_main_dir(path, dir_name):
             return (path / dir_name).is_dir(), dir_name
@@ -203,7 +256,12 @@ class ProcessDataStructure:
 
     @property
     def _dataset_organization_guide_message(self):
-        """Show dataset organization guide and exit"""
+        """Display dataset organization requirements and exit.
+        
+        Shows a detailed guide about the expected dataset structure
+        and organization when validation fails. Exits the program
+        after displaying the message.
+        """
         # Clear any active progress displays
         console.clear_live()
         # Show the guide message
