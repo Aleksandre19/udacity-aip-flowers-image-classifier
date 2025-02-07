@@ -2,7 +2,15 @@ import os
 import sys
 import torch
 from torchvision import models
-from utils import questionary_default_style, get_predict_terminal_args, console, CustomClassifier, print_model_classifier, get_model
+from utils import (
+  questionary_default_style, 
+  get_predict_terminal_args, 
+  console, 
+  CustomClassifier, 
+  print_model_classifier, 
+  get_model, 
+  select_file
+)
 from tkinter import Tk, filedialog
 from pathlib import Path
 from rich.panel import Panel
@@ -21,13 +29,10 @@ class LoadModel:
     if not self.args.model:
       # Choose model file
       console.print(f"[example][→] Please select the model file from the file dialog...[/example]\n")
-      root = Tk()
-      root.withdraw()  # Hide the main window
-      model = filedialog.askopenfilename(
-          title="Choose the model to make predictions with",
-          filetypes=[("Model Files", "*.pth"), ("All Files", "*.*")]
+      model = select_file(
+        title="Choose the model to make predictions with",
+        filetypes=[("Model Files", "*.pth"), ("All Files", "*.*")]
       )
-      root.destroy()
       
       if not model:  # If user cancels the dialog
           console.print(Panel.fit(

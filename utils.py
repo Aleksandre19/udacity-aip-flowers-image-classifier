@@ -20,6 +20,7 @@ from rich.progress import (
     TimeRemainingColumn,
     TransferSpeedColumn,
 )
+from tkinter import Tk, filedialog
 from rich.theme import Theme
 import questionary
 from constants import PROVIDE_DATA_RICH_MESSAGE, CHOOSE_MODEL_ERROR_MESSAGE
@@ -400,3 +401,15 @@ def define_device(gpu):
 
     console.print(f"[example][✓][/example] Set the device to:[arg]'{device}'[/arg]")
     return device
+
+
+def select_file(title, filetypes):
+    root = Tk()
+    root.withdraw()  # Hide the main window
+    file = filedialog.askopenfilename(
+        title=title,
+        filetypes=filetypes
+    )
+    root.destroy()
+
+    return file

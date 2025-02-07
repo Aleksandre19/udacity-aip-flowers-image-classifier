@@ -1,4 +1,5 @@
 import os
+import select
 import sys
 import plotext as plt
 
@@ -9,7 +10,12 @@ import json
 from pathlib import Path
 from constants import CHOOSE_IMAGE_ERROR_MESSAGE
 from rich.panel import Panel
-from utils import console, questionary_default_style, define_device
+from utils import (
+    console, 
+    questionary_default_style, 
+    define_device, 
+    select_file
+)
 
 import torch
 import questionary
@@ -33,24 +39,22 @@ class MakePrediction:
 
     def predict_questionary(self):
         self.choose_image()
+        if not self.cat_to_name:
+            self.select_cat_to_name()
         self.transform_image()
         self.preidct_questionary()
         probs, classes = self.predict()
-        self.map_cat_to_name()
         self.print_predictions(probs, classes)
         self.predict_again()
-
+    
     def choose_image(self):
         console.print(f"[example][→] Please select the image[/example]")
-        root = Tk()
-        root.withdraw()  # Hide the main window
-        image = filedialog.askopenfilename(
+        image = select_file(
             title="Choose the image to make predictions with",
             filetypes=[
-                ("JPEG files", "*.jpg *.jpeg"),
+                ("Image files", "*.jpg *.jpeg"),
             ]
         )
-        root.destroy()
         
         if not image:  # If user cancels the dialog
             console.print(Panel.fit(
@@ -65,6 +69,21 @@ class MakePrediction:
         self.image = self.image_path
 
         console.print(f"[example][✓][/example] Image is selected:[arg]'{self.image_path}'[/arg]")
+
+    def select_cat_to_name(self):
+        console.print(f"[example][→] Please select the category-to-name mapping file from the file dialog (*.json)[/example]")
+        cat_to_name = select_file(
+            title="Choose the category mapping to names (*.json):",
+            filetypes=[("JSON files", "*.json"),]
+        )
+
+        if not cat_to_name:
+            print("no cat_to_name")
+            sys.exit("Exiting...")
+            
+        self.cat_to_name = json.load(open(cat_to_name))
+
+        console.print(f"[example][✓][/example] Category-to-name mapping was selected successfully")
 
     def transform_image(self):
         # Load the image using PIL
@@ -92,7 +111,8 @@ class MakePrediction:
         self.topk = int(topk)
 
         console.print(f"[example][✓][/example] Top K is selected:[arg]'{self.topk}'[/arg]")
-
+        
+          # If user cancels the dialog
         # GPU option
         gpu = questionary.confirm(
             f"GPU: Use GPU acceleration (current: {False if not self.device else True}):",
@@ -139,27 +159,39 @@ class MakePrediction:
             # Switch on dropouts
             self.model.train()       
             return probs, classes
-
-
-    def map_cat_to_name(self):
-       # Load category names
-        cat_to_name_path = Path(__file__).parent.parent / 'cat_to_name.json'
-        with open(cat_to_name_path, 'r') as f:
-            self.cat_to_name = json.load(f)
-
+    
+    def _select_cat_name(self, class_index):
+        cat_name = self.cat_to_name.get(class_index, None)
+        if not cat_name:
+            cat_name = None
+        return cat_name
 
     def print_predictions(self, probs, classes):
         print()
+        cat_name = self._select_cat_name(classes[0])
+            
         console.print(f"[purple][↓][/purple] [purple]Predictions Result: [/purple]")
-        console.print(f"[example][→][/example] [info]Top Prediction[/info] is" 
-                      f"[desc]`{self.cat_to_name[classes[0]]}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]\n")
 
+        if cat_name:
+            console.print(f"[example][→][/example] [info]Top Prediction[/info] is" 
+                          f"[desc]`{cat_name}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]\n")
+        else:
+            console.print(f"[error][❌] No name found for the predicted class {test_cat}."
+                          f" Please check the category-to-name mapping file. [/error]\n")
+                          
         console.print(f"[purple][↓][/purple] [purple]Probability Distribution: [/purple]")
+
+        print_message = ""
         for p, c in zip(probs, classes):
-            console.print(
-                f"[example][→][/example] [info]Flower:[/info] [desc]{self.cat_to_name[c]:25}[/desc] | " 
-                f"[info]Category:[/info] [desc]{c:3}[/desc] | " 
-                f"[info]Probability:[/info] [arg]{p:.4f}[/arg]")
+            cat_name = self._select_cat_name(c)
+            if not cat_name:
+                print_message = f"[error][❌] No name found for the predicted class {c}. Please check the category-to-name mapping file. [/error]"
+            else:
+                print_message = (f"[example][→][/example] [info]Flower:[/info] [desc]{c:25}[/desc] | "
+                                f"[info]Category:[/info] [desc]{c:3}[/desc] | "
+                                f"[info]Probability:[/info] [arg]{p:.4f}[/arg]")
+                
+            console.print(f"{print_message}")
         
         # Display the image in terminal
         console.print("\n[purple][↓][/purple] [purple]Input Image:[/purple]")
