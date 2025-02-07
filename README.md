@@ -60,6 +60,7 @@ This project implements a terminal-based pipeline for training, evaluating, and 
 │   ├── load_model.py      # Model loading for prediction
 │   └── make_prediction.py # Prediction implementation
 ├── utils.py          # Utility functions and helpers
+├── constants.py      # Constants module
 └── cat_to_name.json  # Category-to-name mapping
 ```
 
