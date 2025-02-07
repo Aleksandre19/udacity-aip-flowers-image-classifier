@@ -1,5 +1,21 @@
 # Flower Image Classifier
 
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Installation](#installation)
+- [Training Workflow](#training-workflow)
+  - [1. Initial Setup](#1-initial-setup)
+  - [2. Dataset Management](#2-dataset-management)
+  - [3. Model Configuration](#3-model-configuration)
+  - [4. Training Process](#4-training-process)
+  - [5. Model Evaluation](#5-model-evaluation)
+- [Prediction Workflow](#prediction-workflow)
+  - [1. Model Loading](#1-model-loading)
+  - [2. Image Processing](#2-image-processing)
+  - [3. Making Predictions](#3-making-predictions)
+
 ## Project Overview
 This project implements a sophisticated deep learning model for classifying different species of flowers. Using neural network architectures, the classifier can identify various flower species from images with high accuracy.
 ![flower-classifier](screenshots/flowers_banner.webp)
@@ -58,101 +74,90 @@ conda env update -f environment.yml
 python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
 ```
 
-## Usage Guide
+## Training Workflow
 
-### 1. Training the Model
-Only running the following command will get error because the data directory is required:
+### 1. Initial Setup
+To begin training, you'll need to specify a data directory. Running the script without one will result in an error:
 ```bash
 python train.py
 ```
 ![flower-classifier](screenshots/train_error.webp)
 
-The data directory represents the folder where your data will live and you can specify it when running the training script:
+Provide the data directory path when running the script:
 ```bash
 python train.py <data_directory_name>
 ```
-After which you get a welcome message with a configuration menu.
+You'll be greeted with a welcome message and configuration menu:
 ![flower-classifier](screenshots/welcome_message.webp)
 
-Simply follow the instruction and specify parameters or choose defaults by pressing [Enter].
+Navigate through the parameter configuration menu, using [Enter] to accept defaults:
 ![flower-classifier](screenshots/configuration_menu.webp)
 
-If you want to know more about the parameters, you can run the following command:
+For detailed parameter information, use:
 ```bash
 python train.py --info
 ```
-It also provides a info about the dataset structure.
 ![flower-classifier](screenshots/parameters_info.webp)
 
-After specifying the configuration, the dataset directory will be set up in case you choose to continue.
+### 2. Dataset Management
+After configuration, the system sets up your dataset directory:
 ![flower-classifier](screenshots/data_directory.webp)
 
-The training workflow includes:
+You'll receive information about the dataset requirements:
+![flower-classifier](screenshots/dataset_setup.webp)
 
-#### a. Dataset Setup
-- Validates data directory structure
-- Downloads sample dataset if needed
-- Ensures proper train/valid/test split organization
+Download the dataset when prompted:
+![flower-classifier](screenshots/download_dataset.webp)
 
-#### b. Data Preprocessing
-- Applies data augmentation for training (rotation, crop, flip)
-- Normalizes images using ImageNet statistics
-- Creates efficient data loaders with memory pinning
+The system automatically extracts and validates the dataset:
+![flower-classifier](screenshots/dataset_validation.webp)
 
-#### c. Model Configuration
-Customize your model through the interactive menu:
-- Architecture: Choose from VGG11, VGG13, VGG16, VGG19
-- Input size: Configure input layer dimensions
-- Hidden units: Specify hidden layer architecture
-- Learning rate: Set training optimization rate
-- Epochs: Define training duration
-- GPU usage: Enable/disable CUDA acceleration
+Review the preprocessing steps before continuing:
+![flower-classifier](screenshots/dataset_transform.webp)
 
-<screenshot>
-[Screenshot showing the training progress with loss and accuracy metrics]
+### 3. Model Configuration
+The preprocessing phase begins with device setup and model initialization:
+![flower-classifier](screenshots/pre_training.webp)
 
-### 2. Making Predictions
-Use the trained model for predictions:
-```bash
-python predict.py --model <path_to_checkpoint>
-```
+The system configures CUDA if available and loads your chosen VGG model:
+![flower-classifier](screenshots/original_classifier.webp)
 
-<screenshot>
-[Screenshot showing the prediction interface and results]
+The classifier architecture is updated based on your specifications:
+![flower-classifier](screenshots/new_classifier.webp)
 
-The prediction workflow includes:
-- Model checkpoint loading
-- Interactive image selection
-- Category-to-name mapping configuration
-- Top-k predictions with probability scores
+### 4. Training Process
+Review the pre-training summary:
+![flower-classifier](screenshots/pre_training_message.webp)
 
-## Dataset Structure
-The dataset should be organized as follows:
-```
-data_directory/
-    ├── train/
-    │   ├── class_1/
-    │   ├── class_2/
-    │   └── ...
-    ├── valid/
-    │   ├── class_1/
-    │   ├── class_2/
-    │   └── ...
-    └── test/
-        ├── class_1/
-        ├── class_2/
-        └── ...
-```
+During training, you'll see real-time metrics including training loss, validation loss, and accuracy:
+![flower-classifier](screenshots/training_loop.webp)
 
-## Model Checkpoints
-Checkpoints are saved during training and contain:
-- Model state dictionary
-- Optimizer state
-- Class-to-index mapping
-- Model architecture configuration
+### 5. Model Evaluation
+After training completes, the system evaluates the model and presents options to save, retrain, or exit:
+![flower-classifier](screenshots/model_evaluation.webp)
 
-## Performance Tips
-- Use GPU acceleration for faster training
-- Adjust batch size based on available memory
-- Enable memory pinning for improved data loading
-- Start with default hyperparameters and tune as needed
+## Prediction Workflow
+
+### 1. Model Loading
+Start predictions either through the menu or command:
+![flower-classifier](screenshots/continue_with_prediction.webp)
+
+Select your trained model checkpoint (default location is `checkpoints` directory):
+![flower-classifier](screenshots/selecting_checkpoint.webp)
+
+The system loads and displays the model architecture:
+![flower-classifier](screenshots/load_vgg.webp)
+
+### 2. Image Processing
+Select an image for classification:
+![flower-classifier](screenshots/select_image.webp)
+
+Choose the category-to-name mapping file (required for first-time use):
+![flower-classifier](screenshots/choose_cat_to_name.webp)
+
+Configure prediction parameters (top-k and GPU options):
+![flower-classifier](screenshots/prediction_questionary.webp)
+
+### 3. Making Predictions
+View prediction results and choose to continue with more predictions or exit:
+![flower-classifier](screenshots/prediction_result.webp)
