@@ -20,7 +20,7 @@ class TrainModel:
         self.processed_data = processed_data
         self.lr = float(self.args.learning_rate)
         self.pre_train_message
-        self.device = define_device()
+        self.device = define_device(self.args.gpu)
         self.model = get_model(self.args.arch)
         self.optimizer = None
         self.criterion = None
@@ -82,8 +82,13 @@ class TrainModel:
         self.criterion = nn.NLLLoss()
         self.optimizer = torch.optim.Adam(self.model.classifier.parameters(), lr=self.lr)
         console.print(f"[example][✓][/example] Optimizer and Criterion were successfully initialized")
+
+        # Move model to the device
         self.model.to(self.device)
-        console.print(f"[example][✓][/example] Model was moved to the device")
+
+        # Verify model device
+        model_device = next(self.model.parameters()).device
+        console.print(f"[example][→][/example] Model is on device: [info]`{model_device}`[/info]")
 
 
     def train_model(self):

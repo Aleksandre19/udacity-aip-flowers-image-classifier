@@ -392,7 +392,11 @@ def get_model(model_name):
         console.print(f"[example][✓][/example] The model [arg]'{model_name}'[/arg] was successfully loaded")
         return model
 
-def define_device():
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def define_device(gpu):
+    device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
+
+    if gpu and str(device) == "cpu":
+        console.print(f"[error][❌] GPU is not available[/error]\n")
+
     console.print(f"[example][✓][/example] Set the device to:[arg]'{device}'[/arg]")
     return device

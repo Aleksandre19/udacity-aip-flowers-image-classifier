@@ -21,7 +21,7 @@ class MakePrediction:
         self.model = model
         self.image = None
         self.image_path = None
-        self.device = define_device()
+        self.device = None
         self.topk = 5
         self.cat_to_name = None
         
@@ -34,7 +34,7 @@ class MakePrediction:
     def predict_questionary(self):
         self.choose_image()
         self.transform_image()
-        self.choose_topk()
+        self.preidct_questionary()
         probs, classes = self.predict()
         self.map_cat_to_name()
         self.print_predictions(probs, classes)
@@ -82,7 +82,7 @@ class MakePrediction:
         
         console.print(f"[example][✓][/example] The image was transformed successfully")
     
-    def choose_topk(self):
+    def preidct_questionary(self):
         topk   = questionary.text(
             f"Top K: Number of top predictions to display (current: {self.topk}):",
             validate=lambda x: x.isdigit() if x else False,
@@ -93,10 +93,27 @@ class MakePrediction:
 
         console.print(f"[example][✓][/example] Top K is selected:[arg]'{self.topk}'[/arg]")
 
+        # GPU option
+        gpu = questionary.confirm(
+            f"GPU: Use GPU acceleration (current: {False if not self.device else True}):",
+            default=False,
+            style=questionary_default_style()
+        ).ask()
+
+        self.device = define_device(gpu)
+
 
     def predict(self):
-        # Add batch dimension
+        # Move model to the device
+        self.model.to(self.device)
+        
+        # Verify model device
+        model_device = next(self.model.parameters()).device
+        console.print(f"[example][→][/example] Model is on device: [info]`{model_device}`[/info]")
+
+        # Add batch dimension and move to device
         self.image = self.image.unsqueeze(0).to(self.device)
+        console.print(f"[example][→][/example] Image is on device: [info]`{self.image.device}`[/info]")
 
         # Switch off dropouts
         self.model.eval()

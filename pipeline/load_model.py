@@ -2,7 +2,7 @@ import os
 import sys
 import torch
 from torchvision import models
-from utils import questionary_default_style, get_predict_terminal_args, console, CustomClassifier, print_model_classifier, get_model, define_device
+from utils import questionary_default_style, get_predict_terminal_args, console, CustomClassifier, print_model_classifier, get_model
 from tkinter import Tk, filedialog
 from pathlib import Path
 from rich.panel import Panel
@@ -11,7 +11,6 @@ from constants import CHOOSE_MODEL_ERROR_MESSAGE
 class LoadModel:
   def __init__(self):
     self.args = get_predict_terminal_args()
-    self.device = define_device()
     self.model = None
     self.setup_questionary()
     self.load_model()
@@ -84,8 +83,6 @@ class LoadModel:
       
       # Load the state dict
       self.model.load_state_dict(checkpoint['state_dict'])
-
-      self.model.to(self.device)
 
       print_model_classifier(self.model.classifier)
       
