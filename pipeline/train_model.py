@@ -3,7 +3,7 @@ import sys
 import torch
 import torch.hub
 from datetime import datetime
-from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE
+from constants import MODEL_TRAIN_MESSAGE, CURRENT_MODEL_ARCHITECTURE_MESSAGE, START_MODEL_TRAIN_MESSAGE, RETRAIN_MODEL_MESSAGE, CONTINUE_WITH_PREDICTION_MESSAGE
 from torch import nn
 from torchvision import models
 from utils import console, questionary_default_style, CustomClassifier, print_model_classifier, get_model, define_device
@@ -41,6 +41,7 @@ class TrainModel:
         train.replace_classifier(custom_classifier)
         train.initialize_optimizer_and_criterion()
         train.train_model()
+        train.continue_with_prediction()
 
     @property
     def pre_train_message(self):
@@ -370,10 +371,35 @@ class TrainModel:
         }
         
         torch.save(checkpoint, checkpoint_path)
-        console.print(f"[example][✓][/example] The Model '{model_name}'  was successfully saved to '{checkpoint_path}'")
+        console.print(f"[example][✓][/example] The Model '{model_name}'  was successfully saved to '{checkpoint_path}'\n")
 
     def retrain_model(self):
         reconfigure = WelcomeMessage(retrain=True)
         TrainModel.start(reconfigure.args, self.processed_data, retrain=True)
+
+    def continue_with_prediction(self):
+        console.print(Panel.fit(
+            CONTINUE_WITH_PREDICTION_MESSAGE,
+            title="Continue with Prediction?",
+            border_style="green"
+        ))
+
+        choice = questionary.select(
+            "Choose an option",
+            choices=[
+                "I will do manually",
+                "Continue with prediction"
+            ],
+            style=questionary_default_style()
+        ).ask()
+
+        if choice == "I will do manually":
+            sys.exit("Well done...")
+        elif choice == "Continue with prediction":
+            # Start predict.py in a new process and exit current script
+            os.execl(sys.executable, sys.executable, "predict.py")
+ 
+
+
     
 

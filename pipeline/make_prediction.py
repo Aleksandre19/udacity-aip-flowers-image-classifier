@@ -138,7 +138,7 @@ class MakePrediction:
                       f"[desc]`{self.cat_to_name[classes[0]]}`[/desc] with probability [arg]{probs[0]:.4f}[/arg]")
 
         console.print(f"[example][→][/example] [info]Classes: [/info][desc]{classes}[/desc]")
-        formatted_probs = [f"{p*100:.4f}%" for p in probs]
+        formatted_probs = [f"{p:.4f}" for p in probs]
         console.print(f"[example][→][/example] [info]Probabilities: [/info][desc]{formatted_probs}[/desc]")
         
         # Display the image in terminal

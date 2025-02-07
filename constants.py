@@ -39,7 +39,7 @@ DATA_STRUCTURE_MESSAGE = (
    "[desc]├── train/[/desc] ── [yellow]1/[/yellow] ── [white]image_67823.jpg, image_23456.jpg, ...[/white]\n"
    "[desc]├── valid/[/desc] ── [yellow]1/[/yellow] ── [white]image_89123.jpg, image_45678.jpg, ...[/white]\n"
    "[desc]└── test/ [/desc] ── [yellow]1/[/yellow] ── [white]image_12345.jpg, image_78901.jpg, ...[/white]\n\n"
-   "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]\n\n",
+   "[info]For more information - [/info][desc]'python3 train.py --info'[/desc]\n\n"
 )
 
 
@@ -88,4 +88,11 @@ CHOOSE_MODEL_ERROR_MESSAGE = (
 CHOOSE_IMAGE_ERROR_MESSAGE = (
    "[error][❌] The Image is required to make predictions [/error]\n\n"
    "[example]Please press [info][Enter][/info] to choose an image[/example]\n"
+)
+
+CONTINUE_WITH_PREDICTION_MESSAGE = (
+   "[info]Would you like to make predictions?[/info]\n"
+   "\n[example]You have the following options:[/example]\n"
+   "• [desc]Manually: [info]`python3 predict.py`[/info][/desc]\n"
+   "• [desc]Automatically: choose [info]'Continue with prediction'[/info] from the menu below[/desc]"
 )
