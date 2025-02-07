@@ -17,30 +17,50 @@
   - [3. Making Predictions](#3-making-predictions)
 
 ## Project Overview
-This project implements a sophisticated deep learning model for classifying different species of flowers. Using neural network architectures, the classifier can identify various flower species from images with high accuracy.
+This project implements a terminal-based pipeline for training, evaluating, and making predictions on the [102 Category Flower Dataset](https://www.robots.ox.ac.uk/~vgg/data/flowers/102/index.html).
 ![flower-classifier](screenshots/flowers_banner.webp)
 
 ## Features
-- Interactive and command-line interfaces
-- Multiple pre-trained model architectures (VGG11, VGG13, VGG16, VGG19)
-- Automated dataset downloading and validation
-- Comprehensive data preprocessing with augmentation
-- Real-time training progress monitoring
-- Model checkpoint management
-- Top-k predictions with probability scores
+- **User-Friendly Interface**
+  - Interactive terminal-based questionnaire for configuration
+  - Visual progress indicators and status messages
+  - File selection dialogs for model and image handling
+
+- **Flexible Model Architecture**
+  - Support for VGG-based models (VGG11, VGG13, VGG16, VGG19)
+  - Customizable classifier layers
+  - GPU acceleration support
+
+- **Automated Dataset Management**
+  - Automatic dataset download and extraction
+  - Dataset structure validation
+  - Train/validation/test split handling
+
+- **Advanced Training Pipeline**
+  - Real-time loss and accuracy monitoring
+  - Automatic model checkpointing
+  - Data augmentation (rotation, crops, flips)
+  - Configurable hyperparameters
+
+- **Robust Prediction System**
+  - Top-k predictions with confidence scores
+  - Category-to-name mapping support
+  - Batch prediction capabilities
+  - Model state preservation
 
 ## Project Structure
 ```
 ├── train.py           # Main training script
 ├── predict.py         # Main prediction script
 ├── pipeline/
-│   ├── landing.py         # Training parameter configuration
+│   ├── landing.py         # Training parameter 
 │   ├── process_data.py    # Dataset validation and setup
 │   ├── preprocess_data.py # Data transformation and loading
 │   ├── train_model.py     # Model training implementation
 │   ├── load_model.py      # Model loading for prediction
 │   └── make_prediction.py # Prediction implementation
-└── utils.py          # Utility functions and helpers
+├── utils.py          # Utility functions and helpers
+└── cat_to_name.json  # Category-to-name mapping
 ```
 
 ## Installation
