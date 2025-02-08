@@ -499,12 +499,14 @@ def print_model_classifier(classifier, message=""):
     console.print("Press Enter to continue...")
     input("")
 
-def get_model(model_name):
+def get_model(model_name, for_training=False):
     """Get a pretrained model by name.
     
     Args:
         model_name (str): Name of the model to load ('vgg11', 'vgg13',
             'vgg16', 'vgg19')
+        for_training (bool): If True, freeze parameters for transfer learning.
+            If False (prediction mode), no need to freeze parameters.
     
     Returns:
         torchvision.models: Pretrained model instance
@@ -525,9 +527,15 @@ def get_model(model_name):
         sys.exit(1)
     
     model_func, weights = model_mapping[model_name]
-    model = model_func(weights=weights) 
-
+    model = model_func(weights=weights)
+    
+    # Freeze parameters only if we're training
+    if for_training:
+        for param in model.parameters():
+            param.requires_grad = False
+    
     console.print(f"[example][✓][/example] The model [arg]'{model_name}'[/arg] was successfully loaded")
+    console.print(f"[example][✓][/example] The model parameters were successfully frozen")
     return model
 
 def define_device(gpu):

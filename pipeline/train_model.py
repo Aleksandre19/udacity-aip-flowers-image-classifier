@@ -55,7 +55,7 @@ class TrainModel:
         self.lr = float(self.args.learning_rate)  # Learning rate
         self.pre_train_message  # Display pre-training message
         self.device = define_device(self.args.gpu)  # CPU/GPU device
-        self.model = get_model(self.args.arch)  # Load pretrained model
+        self.model = get_model(self.args.arch, for_training=True)  # Load pretrained model
         self.optimizer = None  # Will be set in initialize_optimizer_and_criterion
         self.criterion = None  # Will be set in initialize_optimizer_and_criterion
         self.steps = 0  # Training step counter
@@ -428,16 +428,16 @@ class TrainModel:
 
         # Define structure of the checkpoint
         checkpoint = {
-            'input': self.args.input_size,
-            'output': self.args.output_size,
-            'hidden_layers': self.args.hidden_units,
-            'learning_rate': self.lr,
-            'dropout': self.args.drop_p,
-            'epochs': self.args.epochs,
-            'batch_size': self.processed_data.dataloaders['train'].batch_size,
+            'input': int(self.args.input_size),
+            'output': int(self.args.output_size),
+            'hidden_layers': [int(h) for h in self.args.hidden_units],
+            'learning_rate': float(self.lr),
+            'dropout': float(self.args.drop_p),
+            'epochs': int(self.args.epochs),
+            'batch_size': int(self.processed_data.dataloaders['train'].batch_size),
             'activation': 'LogSoftmax',
-            'criterion': self.criterion,
-            'optimizer': self.optimizer,
+            'criterion': 'NLLLoss',
+            'optimizer': 'Adam',
             'arch': self.args.arch,
             'class_to_idx': self.processed_data.datasets['train'].class_to_idx,
             'state_dict': self.model.state_dict()

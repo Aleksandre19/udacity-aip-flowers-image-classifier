@@ -12,13 +12,13 @@ from torchvision import models
 # Local imports
 from constants import CHOOSE_MODEL_ERROR_MESSAGE
 from utils import (
-    console,
-    CustomClassifier,
-    get_model,
-    get_predict_terminal_args,
-    print_model_classifier,
-    questionary_default_style,
-    select_file
+  console,
+  CustomClassifier,
+  get_model,
+  get_predict_terminal_args,
+  print_model_classifier,
+  questionary_default_style,
+  select_file
 )
 
 class LoadModel:
@@ -101,7 +101,7 @@ class LoadModel:
     Exits with error message if loading fails.
     """
     try:
-      # Load the checkpoint (this is our own trusted checkpoint)
+      # Load the checkpoint
       checkpoint = torch.load(self.args.model)
       
       # Get the base model architecture
